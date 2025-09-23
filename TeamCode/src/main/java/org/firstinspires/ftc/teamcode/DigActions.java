@@ -10,10 +10,83 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class DigActions {
-    public static class Launcher {
 
+    public static class Launcher {
+        private static DcMotorEx flywheelmotor;
+        private static CRServo turret;
+        public Launcher(HardwareMap hardwareMap) {
+            // Launcher initialization, e.g., configuring motors or sensors
+            flywheelmotor = hardwareMap.get(DcMotorEx.class, "flywheel");
+            turret = hardwareMap.get(CRServo.class, "turret");
+
+        }
+
+        public static class MotorOn implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action motorOn() {
+            return new MotorOn();
+        }
+
+        public static class SpeedChange implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action speedChange() {
+            return new SpeedChange();
+        }
+
+        public static class ReadAprilTag implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action readAprilTag() {
+            return new ReadAprilTag();
+        }
+
+        public static class TurretTurn implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action turretTurn() {
+            return new TurretTurn();
+        }
+
+        public static class MotorOff implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action motorOff() {
+            return new MotorOff();
+        }
+
+        public static class DetectDistance implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action detectDistance() {
+            return new DetectDistance();
+        }
     }
     public static class Sensors {
 
@@ -51,22 +124,66 @@ public class DigActions {
         }
     }
     public static class Hopper {
+        public Hopper(HardwareMap hardwareMap) {
+            // Hopper initialization, e.g., configuring motors or sensors
+        }
 
-    }
-    public static class Parking {
-        public static class ParkServo {
-            public ParkServo(HardwareMap hardwareMap) {
-                // Servo initialization, e.g., configuring servo motor
-            }
-            public static class ServoPark implements Action {
-                @Override
-                public boolean run(@NonNull TelemetryPacket packet) {
-                    return false;
-                }
-            }
-            public static Action servoPark() {
-                return new ServoPark();
+        public static class MotorTurn implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
             }
         }
+        public static Action motorTurn() {
+            return new MotorTurn();
+        }
+
+        public static class IdentifyBall implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action identifyBall() {
+            return new IdentifyBall();
+        }
+
+        public static class IdentifyOrder implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action identifyOrder() {
+            return new IdentifyOrder();
+        }
+
+        public static class Sequencing implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action sequencing() {
+            return new Sequencing();
+        }
+
+        public static class DriveToColor implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action driveToColor() {
+            return new DriveToColor();
+        }
     }
-}
+    public static class Parking {
+        public static class
+
+
+
+
+
+
+    // Skibidi
