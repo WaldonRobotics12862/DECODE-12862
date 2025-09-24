@@ -21,6 +21,7 @@ public class DigActions {
     public static class Launcher {
         private static DcMotorEx flywheelmotor;
         private static CRServo turret;
+
         public Launcher(HardwareMap hardwareMap) {
             // Launcher initialization, e.g., configuring motors or sensors
             flywheelmotor = hardwareMap.get(DcMotorEx.class, "flywheel");
@@ -29,23 +30,20 @@ public class DigActions {
         }
 
         public static class MotorOn implements Action {
+            public Integer rpm;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
+                flywheelmotor.setVelocity(rpm);
+                double flyWheelSpeed = flywheelmotor.getVelocity();
+                if (flyWheelSpeed > (rpm*0.9)) {
+                    return false;
+                } else {
+                    return true;
+                }
             }
         }
-        public static Action motorOn() {
-            return new MotorOn();
-        }
-
-        public static class SpeedChange implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-        public static Action speedChange() {
-            return new SpeedChange();
+        public static Action motorOn(Integer rpm) {
+            return new MotorOn(rpm);
         }
 
         public static class ReadAprilTag implements Action {
@@ -54,6 +52,7 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action readAprilTag() {
             return new ReadAprilTag();
         }
@@ -64,6 +63,7 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action turretTurn() {
             return new TurretTurn();
         }
@@ -74,6 +74,7 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action motorOff() {
             return new MotorOff();
         }
@@ -84,45 +85,55 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action detectDistance() {
             return new DetectDistance();
         }
     }
+
     public static class Sensors {
 
     }
+
     public static class Intake {
         public Intake(HardwareMap hardwareMap) {
             // 1 Motor, 2 Direction
         }
+
         public static class IntakeOn implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 return false;
             }
         }
+
         public static Action intakeOn() {
             return new IntakeOn();
         }
+
         public static class IntakeOff implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 return false;
             }
         }
+
         public static Action intakeOff() {
             return new IntakeOff();
         }
+
         public static class SpitOut implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 return false;
             }
         }
+
         public static Action spitOut() {
             return new SpitOut();
         }
     }
+
     public static class Hopper {
         public Hopper(HardwareMap hardwareMap) {
             // Hopper initialization, e.g., configuring motors or sensors
@@ -134,6 +145,7 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action motorTurn() {
             return new MotorTurn();
         }
@@ -144,6 +156,7 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action identifyBall() {
             return new IdentifyBall();
         }
@@ -154,6 +167,7 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action identifyOrder() {
             return new IdentifyOrder();
         }
@@ -164,6 +178,7 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action sequencing() {
             return new Sequencing();
         }
@@ -174,12 +189,29 @@ public class DigActions {
                 return false;
             }
         }
+
         public static Action driveToColor() {
             return new DriveToColor();
         }
     }
+
     public static class Parking {
-        public static class
+        public Parking(HardwareMap hardwareMap) {
+            // Parking initialization, e.g., configuring motors or sensors
+        }
+
+        public static class Touch implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+
+        public static Action touch() {
+            return new Touch();
+        }
+    }
+}
 
 
 
