@@ -71,10 +71,10 @@ public class DigActions {
         public static class MotorOff implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                flywheelmotor.setPower(0);
                 return false;
             }
         }
-
         public static Action motorOff() {
             return new MotorOff();
         }
@@ -212,10 +212,3 @@ public class DigActions {
         }
     }
 }
-
-
-
-
-
-
-    // Skibidi
