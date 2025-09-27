@@ -10,16 +10,13 @@
                 DigitalDevice
             -->
             <goBILDA5202SeriesMotor name="flywheel" port="0" />
+            <ContinuousRotationServo name="turret" port="0" />
 <!--
             <goBILDA5202SeriesMotor name="leftFront" port="0" />
             <goBILDA5202SeriesMotor name="leftBack" port="1" />
             <goBILDA5202SeriesMotor name="rightBack" port="2" />
             <goBILDA5202SeriesMotor name="rightFront" port="3" />
 -->
-
-        </LynxModule>
-        <LynxModule name="Expansion Hub 2" port = "2">
-            <!-- This is for the expansion hub and anything that is plugged into the expansion hub. -->
 
         </LynxModule>
     </LynxUsbDevice>
