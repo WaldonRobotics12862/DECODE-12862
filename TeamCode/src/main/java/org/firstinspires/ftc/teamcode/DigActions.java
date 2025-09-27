@@ -3,7 +3,6 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -11,12 +10,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class DigActions {
 
@@ -32,20 +25,31 @@ public class DigActions {
         }
 
         public static class MotorOn implements Action {
-            public Integer rpm;
+            private boolean initialized  = false;
+            private final Integer targetRPM;
+            private final double targetVelocityUnits;
+
+            public MotorOn(Integer rpm) {
+                this.targetRPM = rpm;
+                this.targetVelocityUnits = rpm * 28.0 / 60.0;
+            }
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                flywheelmotor.setVelocity(rpm);
-                double flyWheelSpeed = flywheelmotor.getVelocity();
-                if (flyWheelSpeed > (rpm*0.9)) {
-                    return false;
-                } else {
-                    return true;
+                if (!initialized) {
+                    flywheelmotor.setVelocity(targetVelocityUnits);
+                    initialized = true;
+                    packet.put("Target RPM", targetRPM); // Useful telemetry
+                    packet.put("Target Vel Units", targetVelocityUnits); // Useful telemetry
                 }
+
+                double vel = flywheelmotor.getVelocity();
+                packet.put("Launch Velocity", vel);
+                return vel < targetVelocityUnits * 0.9;
             }
         }
         public static Action motorOn(Integer rpm) {
-            return new MotorOn();
+            return new MotorOn(rpm);
         }
 
         public static class ReadAprilTag implements Action {
@@ -136,12 +140,6 @@ public class DigActions {
         }
     }
 
-    public static class Hopper {
-        public static DcMotorEx SpindexMotor;
-        private static RevColorSensorV3 Color;
-        private static Servo SpindexTrigger;
-        private static DigitalChannel MagnetSensor;
-
         public static class Hopper {
             public static DcMotorEx SpindexMotor;
             private static RevColorSensorV3 Color;
@@ -180,9 +178,9 @@ public class DigActions {
                 private static RevColorSensorV3 Color;
 
                 @Override
-                public int run(@NonNull TelemetryPacket packet) {
+                public boolean run(@NonNull TelemetryPacket packet) {
                     int myColor = Color.getNormalizedColors().toColor();
-                    double hue = JavaUtil.rgbToHue(Color.red(myColor), Color.green(myColor), Color.blue(myColor));
+                    double hue = JavaUtil.rgbToHue(Color.red(), Color.green(), Color.blue());
                     if (hue > 75 && hue < 95) {
                         return 1; // Purple
                     } else if (hue > 35 && hue < 55) {
