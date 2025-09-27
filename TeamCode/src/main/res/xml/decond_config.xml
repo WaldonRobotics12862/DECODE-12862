@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Robot type="FirstInspires-FTC">
+    <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
+        <LynxModule name="Control Hub" port="173">
+            <!-- Possible Devices may include :
+                Servo
+                ContinuousRotationServo
+                RevColorSensorV3
+                SparkFunOTOS2
+                DigitalDevice
+            -->
+            <goBILDA5202SeriesMotor name="flywheel" port="0" />
+<!--
+            <goBILDA5202SeriesMotor name="leftFront" port="0" />
+            <goBILDA5202SeriesMotor name="leftBack" port="1" />
+            <goBILDA5202SeriesMotor name="rightBack" port="2" />
+            <goBILDA5202SeriesMotor name="rightFront" port="3" />
+-->
+
+        </LynxModule>
+        <LynxModule name="Expansion Hub 2" port = "2">
+            <!-- This is for the expansion hub and anything that is plugged into the expansion hub. -->
+
+        </LynxModule>
+    </LynxUsbDevice>
+</Robot>
