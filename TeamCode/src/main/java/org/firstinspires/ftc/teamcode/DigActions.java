@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
+
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -135,9 +137,82 @@ public class DigActions {
     }
 
     public static class Hopper {
+        public static DcMotorEx SpindexMotor;
+        private static RevColorSensorV3 Color;
+        private static Servo SpindexTrigger;
+        private static DigitalChannel MagnetSensor;
+
         public Hopper(HardwareMap hardwareMap) {
             // Hopper initialization, e.g., configuring motors or sensors
+            SpindexMotor = hardwareMap.get(DcMotorEx.class, "spindex");
+            Color = hardwareMap.get(RevColorSensorV3.class, "color");
+            SpindexTrigger = hardwareMap.get(Servo.class, "trigger");
+            MagnetSensor = hardwareMap.get(DigitalChannel.class, "mag");
+
+
         }
+        public static class RotateToNext implements Action{
+            private static DcMotorEx SpindexMotor;
+            private static DigitalChannel MagnetSensor;
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                SpindexMotor.setPower(0.1);
+                if(MagnetSensor.getState()) {
+                    SpindexMotor.setPower(0);
+                    return false;
+                }else {return true}
+                return false;
+        }
+        public static Action rotateToNext(){
+                return new RotateToNext();
+        }
+            public static class IdentifyBall implements Action {
+                private static RevColorSensorV3 Color;
+                @Override
+                public int run(@NonNull TelemetryPacket packet) {
+                    int myColor = color.getNormalizedColors().toColor();
+                    double hue = JavaUtil.rgbToHue(Color.red(myColor), Color.green(myColor), Color.blue(myColor));
+                    //Purple
+                    if (hue > 75 && hue < 95) {
+                        return 1;
+                    //Green
+                    } else if (hue > 35 && hue < 55) {
+                        return 2;
+                    }else {return 0};
+                }
+            }
+
+
+            public static Action identifyBall() {
+                return new IdentifyBall();
+            }
+
+            public static class IdentifyOrder implements Action {
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    return false;
+                }
+            }
+
+            public static Action identifyOrder() {
+                return new IdentifyOrder();
+            }
+
+            public static class Sequencing implements Action {
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    return false;
+                }
+            }
+
+            public static Action sequencing() {
+                return new Sequencing();
+            }
+
+
+
+        }
+
 
         public static class MotorTurn implements Action {
             @Override
@@ -146,53 +221,6 @@ public class DigActions {
             }
         }
 
-        public static Action motorTurn() {
-            return new MotorTurn();
-        }
-
-        public static class IdentifyBall implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-
-        public static Action identifyBall() {
-            return new IdentifyBall();
-        }
-
-        public static class IdentifyOrder implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-
-        public static Action identifyOrder() {
-            return new IdentifyOrder();
-        }
-
-        public static class Sequencing implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-
-        public static Action sequencing() {
-            return new Sequencing();
-        }
-
-        public static class DriveToColor implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-
-        public static Action driveToColor() {
-            return new DriveToColor();
-        }
     }
 
     public static class Parking {
