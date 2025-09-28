@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -36,6 +37,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.acmerobotics.dashboard.config.Config;
 
 //setup the RoadRunner libraries
 import com.acmerobotics.roadrunner.ParallelAction;
@@ -46,8 +48,14 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 
 
 @TeleOp(name="Waldon Testing")
+@Config
 //@Disabled
 public class Waldon_Testing extends LinearOpMode {
+
+    public static int A_speed = 6000;
+    public static int B_speed = 5000;
+    public static int X_speed = 4000;
+    public static int Y_speed = 3000;
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -75,23 +83,18 @@ public class Waldon_Testing extends LinearOpMode {
             DigActions.Launcher launcher = new DigActions.Launcher(hardwareMap);
 
             if(gamepad1.a) {
-                flywheel.setVelocity(6000*28/60);
-                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(600 * 28)));
+                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(A_speed)));
             }
             if(gamepad1.b) {
-                flywheel.setVelocity(5000*28/60);
-                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(500*28)));
+                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(B_speed)));
             }
             if(gamepad1.x) {
-                flywheel.setVelocity(4000*28/60);
-                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(400*28)));
+                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(X_speed)));
             }
             if(gamepad1.y) {
-                flywheel.setVelocity(3000*28/60);
-                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(300*28)));
+                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(Y_speed)));
             }
             if(gamepad1.guide) {
-                //flywheel.setPower(0);
                 Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
             }
 

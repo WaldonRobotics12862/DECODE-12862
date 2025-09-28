@@ -23,6 +23,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 
 @TeleOp(name="WaldonTeleOp")
+
 public class WaldonTeleOp extends LinearOpMode {
     double lastPressedX = 0;
     double lastPressedY = 0;
@@ -59,7 +60,7 @@ public class WaldonTeleOp extends LinearOpMode {
         DigActions.Launcher launcher = new DigActions.Launcher(hardwareMap);
         DigActions.Intake intake = new DigActions.Intake(hardwareMap);
         DigActions.Hopper hopper = new DigActions.Hopper(hardwareMap);
-        DigActions.Sensors sensors = new DigActions.Sensors(hardwareMap);
+        //DigActions.Sensors sensors = new DigActions.Sensors(hardwareMap);
         DigActions.Parking parking = new DigActions.Parking(hardwareMap);
 
         waitForStart();
