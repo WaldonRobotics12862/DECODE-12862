@@ -44,7 +44,7 @@ public class DigActions {
                 }
 
                 double vel = flywheelmotor.getVelocity();
-                packet.put("Launch Velocity", vel);
+                packet.put("RPM: ", vel);
                 return vel < targetVelocityUnits * 0.9;
             }
         }
@@ -182,6 +182,7 @@ public class DigActions {
             public boolean run(@NonNull TelemetryPacket packet) {
                 int myColor = Color.getNormalizedColors().toColor();
                 double hue = JavaUtil.rgbToHue(Color.red(), Color.green(), Color.blue());
+                //TODO: figure out how to return a integer
                 if (hue > 75 && hue < 95) {
                     return true;//1; // Purple
                 } else if (hue > 35 && hue < 55) {
@@ -218,6 +219,7 @@ public class DigActions {
                     if (MagnetSensor.getState()) {
                         SpindexMotor.setPower(0);
                         rotating = false;
+                        //TODO: get the color sensor above to work and then call the function from here.
                         //colors[state - 1] = new IdentifyBall().run(packet);
                         packet.addLine("Ball " + (state) + " color: " + colors[state - 1]);
                         lastTime = currentTime;
