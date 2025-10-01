@@ -9,24 +9,26 @@ import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
 public class MeepMeepTesting {
     public static void main(String[] args) {
-        MeepMeep meepMeep = new MeepMeep(800);
+        MeepMeep meepMeep = new MeepMeep(650);
 
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 18)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, Math.toRadians(0)))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-49
+                , 49, Math.toRadians(125)))
                 .waitSeconds(2)
-                .lineToX(30)
-                .turn(Math.toRadians(90))
-                .lineToY(30)
-                .turn(Math.toRadians(90))
-                .lineToX(0)
-                .turn(Math.toRadians(90))
-                .lineToY(0)
-                .turn(Math.toRadians(90))
-                .strafeTo(new Vector2d(20, -50))
+                .lineToX(-24)
+                .waitSeconds(2.5)
+                .setTangent(Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(-12,24,Math.toRadians(90)),Math.toRadians(90))
+                .lineToY(48)
+                .setTangent(Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(-24, 24,Math.toRadians(135)),Math.toRadians(90))
+                .waitSeconds(2.5)
+                .splineToLinearHeading(new Pose2d(-60,24,Math.toRadians(180)),Math.toRadians(180))
+                //.lineToX(-24)
                 .build());
 
         // The following are examples of what can be done with the path planning inside RoadRunner
