@@ -25,6 +25,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 @TeleOp(name="WaldonTeleOp")
 
 public class WaldonTeleOp extends LinearOpMode {
+    boolean flywheel = false;
+    boolean intake = false;
     double lastPressedX = 0;
     double lastPressedY = 0;
     double lastPressedA = 0;
@@ -82,17 +84,42 @@ public class WaldonTeleOp extends LinearOpMode {
     }
 
     private void Intake(){
-
+        if(gamepad2.dpad_up && !intake){
+            intake = true;
+            Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOn()));
+        }
+        if(gamepad2.dpad_down && intake){
+            intake = false;
+            Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOff()));
+        }
+        if(gamepad2.dpad_left){
+            Actions.runBlocking(new SequentialAction(DigActions.Intake.spitOut()));
+        }
     }
 
     private void Index (){
-
+        if(gamepad2.left_bumper) {
+            Actions.runBlocking(new SequentialAction(DigActions.Hopper.
+            // Find green ball
+        }
+        if (gamepad2.right_bumper){
+            //find Purple ball
+        }
     }
 
     private void Launch(){
         // need a button to spin up the flywheel
-        if(gamepad2.a){
-            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(6000)));
+        if(gamepad2.x && !flywheel){
+            flywheel = true;
+            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(4000)));
+        }
+        if(gamepad2.x && flywheel){
+            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(0)));
+            flywheel = false;
+        }
+        if(gamepad2.y){
+            Actions.runBlocking(new SequentialAction(DigActions.Launcher.trigger()));
+            // TODO go back and write a smelly trigger action
         }
 
         // need a button (or two) to launch an artifact

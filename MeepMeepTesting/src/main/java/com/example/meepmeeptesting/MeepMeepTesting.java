@@ -1,6 +1,7 @@
-package com.example.meepmeeptesting;  // Adjust package as needed
+package com.example.meepmeeptesting;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
@@ -8,37 +9,50 @@ import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
 public class MeepMeepTesting {
     public static void main(String[] args) {
-        MeepMeep meepMeep = new MeepMeep(800);  // Window size; adjust as needed
+        MeepMeep meepMeep = new MeepMeep(800);
 
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
-                // Set your robot's constraints: maxVel (in/s), maxAccel (in/s²), maxAngVel (rad/s), maxAngAccel (rad/s²), trackWidth (in)
-                .setConstraints(50, 50, Math.toRadians(180), Math.toRadians(180), 14)
+                // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
+                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 18)
                 .build();
 
-        //myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(62, 12, Math.toRadians(180)))  // Blue audience start: facing toward the field (positive y)
-        //  .lineToX(58)
-        //    .turn(Math.toRadians(-20))
-        //  .waitSeconds(3)  // Simulate dropping pixel (comment out hardware code)
-        //.splineTo(new Vector2d(36, 32), Math.toRadians(90))
-        //    .lineToY(50)
-        //.setTangent(-90)
-        //  .splineToLinearHeading(new Pose2d(58,12,Math.toRadians(-200)),Math.toRadians(0))
-        //.build());
-
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(62, -12, Math.toRadians(180)))  // Blue audience start: facing toward the field (positive y)
-                .lineToX(58)
-                .turn(Math.toRadians(20))
-                .waitSeconds(3)  // Simulate dropping pixel (comment out hardware code)
-                .splineTo(new Vector2d(36, -32), Math.toRadians(-90))
-                .lineToY(-50)
-                .setTangent(90)
-                .splineToLinearHeading(new Pose2d(58,-12,Math.toRadians(200)),Math.toRadians(0))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, Math.toRadians(0)))
+                .waitSeconds(2)
+                .lineToX(30)
+                .turn(Math.toRadians(90))
+                .lineToY(30)
+                .turn(Math.toRadians(90))
+                .lineToX(0)
+                .turn(Math.toRadians(90))
+                .lineToY(0)
+                .turn(Math.toRadians(90))
+                .strafeTo(new Vector2d(20, -50))
                 .build());
 
-        meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_LIGHT)  // Centerstage field background
-                .setDarkMode(true)
+        // The following are examples of what can be done with the path planning inside RoadRunner
+        //
+        // .splineToLinearHeading(new Pose2d( X , Y , Heading), Angle)
+        //      for SplineToLinearHeading, you need to give it a "Pose2d", which is your final X, Y and heading for the robot
+        //      The Angle is what angle do you want to "enter" the final position from. So, if you want to enter from the left, then you would use Math.toRadians(180)
+        //
+        // .splineToConstantHeading(new Pose2d( X, Y, Heading))
+        //      for SplineToConstantHeading, you need to give it a "Pose2d", which is your final X, Y and heading for the robot
+        //      similar to the Spline to Linear Heading, you need to give it a Pose2d but no Angle as it will just rotate smoothly as it traverses to that point.
+        //
+        // .setTangent(Angle)
+        //      this is used to basically set the exit angle that you want to exit out of your current position at.
+        //
+        // .splineTo(new Vector2d( X, Y), Angle)
+        //      splineTo takes in a Vector2d as well
+        //
+        // .strafeTo(new Vector2d( X, Y))
+        //      Move the robot sideways to a given location
+        //      Works similar to LineToConstantHeading but you don't have to tell it the angle you want to stay facing
+
+        meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_LIGHT)
+                .setDarkMode(false)
                 .setBackgroundAlpha(0.95f)
                 .addEntity(myBot)
-                .start();  // Launch the visualizer
+                .start();
     }
 }
