@@ -16,17 +16,17 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import android.graphics.Color;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
+
 @TeleOp(name="WaldonTeleOp")
 public class WaldonTeleOp extends LinearOpMode {
     boolean flywheel = false;
     boolean intake = false;
+    boolean robotEnabled = true; // Added for Turn On/Off
     double lastPressedX = 0;
     double lastPressedY = 0;
     double lastPressedA = 0;
     double lastPressedB = 0;
-    double slow_mode = 1;
+    double slow_mode = 1.0; // Default speed, can be modified by Turbo
 
     // Declare the color sensor
     private RevColorSensorV3 colorSensor;
@@ -37,12 +37,12 @@ public class WaldonTeleOp extends LinearOpMode {
         DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, "leftBack");
         DcMotorEx frontRightMotor = hardwareMap.get(DcMotorEx.class, "rightBack");
         DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "rightFront");
-
         IMU imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.LEFT));
         imu.initialize(parameters);
+
         // Initialize the color sensor
         colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
 
@@ -89,37 +89,34 @@ public class WaldonTeleOp extends LinearOpMode {
 
     private void Index() {
         if (gamepad2.left_bumper) {
-            // Check if the ball is green using hue detection
             double hue = getBallHue();
             if (hue >= 90 && hue <= 150) {
                 telemetry.addData("Ball Color", "Green Detected (Hue: %.2f)", hue);
-                // Example action: Accept the green ball
-                // Actions.runBlocking(new SequentialAction(DigActions.Hopper.acceptBall()));
+                Actions.runBlocking(new SequentialAction(DigActions.Hopper.acceptBall()));
             } else {
                 telemetry.addData("Ball Color", "Not Green (Hue: %.2f)", hue);
-                // Example action: Reject or ignore non-green ball
                 Actions.runBlocking(new SequentialAction(DigActions.Hopper.spintoSensor()));
-
             }
             telemetry.update();
         }
         if (gamepad2.right_bumper) {
-            // Placeholder for purple ball detection
             double hue = getBallHue();
-            telemetry.addData("Ball Color", "Checking for Purple (Hue: %.2f)", hue);
-            // Implement purple detection (e.g., hue ~270-300) if needed
+            if (hue >= 270 && hue <= 300) { // Placeholder for purple detection
+                telemetry.addData("Ball Color", "Purple Detected (Hue: %.2f)", hue);
+                // Add action for purple ball if needed
+            } else {
+                telemetry.addData("Ball Color", "Not Purple (Hue: %.2f)", hue);
+            }
             telemetry.update();
         }
     }
 
     private double getBallHue() {
-        // Get RGB values from the color sensor
         int red = colorSensor.red();
         int green = colorSensor.green();
         int blue = colorSensor.blue();
         int myColor = colorSensor.getNormalizedColors().toColor();
         double hue = JavaUtil.rgbToHue(Color.red(myColor), Color.green(myColor), Color.blue(myColor));
-        // Log RGB and HSV for debugging
         telemetry.addData("RGB", "R: %d, G: %d, B: %d", red, green, blue);
         return hue;
     }
@@ -145,25 +142,38 @@ public class WaldonTeleOp extends LinearOpMode {
     private void Drive(DcMotorEx frontLeftMotor, DcMotorEx backLeftMotor, DcMotorEx frontRightMotor, DcMotorEx backRightMotor, IMU imu) {
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
+        // Turbo mode (e.g., double speed when Green button pressed)
+        if (gamepad2.a && (System.currentTimeMillis() - lastPressedA > 250)) {
+            slow_mode = (slow_mode == 1.0) ? 2.0 : 1.0; // Toggle between normal and turbo
+            lastPressedA = System.currentTimeMillis();
+        }
+
         if (gamepad1.right_bumper) {
-            slow_mode = 0.5;
-        } else {
-            slow_mode = 1;
+            slow_mode = 0.5; // Slow mode override
         }
 
         double y = -gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
 
+        // Turn On/Off toggle with right stick button
+        if (gamepad1.right_stick_button && (System.currentTimeMillis() - lastPressedB > 250)) {
+            robotEnabled = !robotEnabled;
+            lastPressedB = System.currentTimeMillis();
+            if (!robotEnabled) {
+                frontLeftMotor.setPower(0);
+                backLeftMotor.setPower(0);
+                frontRightMotor.setPower(0);
+                backRightMotor.setPower(0);
+            }
+        }
+
+        if (!robotEnabled) return;
+
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
 
-        if (gamepad1.a) {
-            imu.resetYaw();
-        }
-
         rotX = rotX * 1.1; // Counteract imperfect strafing
-
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = ((rotY + rotX + rx) / denominator) * slow_mode;
         double backLeftPower = ((rotY - rotX + rx) / denominator) * slow_mode;
