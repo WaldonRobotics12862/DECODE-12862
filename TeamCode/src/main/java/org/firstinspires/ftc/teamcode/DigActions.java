@@ -135,8 +135,14 @@ public class DigActions {
     }
 
     public static class Hopper {
+        private static DigitalChannel magSensor;
+        private static DcMotorEx spin;
+
         public Hopper(HardwareMap hardwareMap) {
             // Hopper initialization, e.g., configuring motors or sensors
+            magSensor = hardwareMap.get(DigitalChannel.class, "mag");
+            spin = hardwareMap.get(DcMotorEx.class, "spin");
+
         }
 
         public static class MotorTurn implements Action {
@@ -183,15 +189,22 @@ public class DigActions {
             return new Sequencing();
         }
 
-        public static class DriveToColor implements Action {
+        public static class SpinToSensor implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
+                spin.setPower(0.1);
+                // add sleep maybe????
+                if (magSensor.getState()) {
+                    return true;
+                } else {
+                    spin.setPower(0);
+                    return false;
+                }
             }
         }
 
-        public static Action driveToColor() {
-            return new DriveToColor();
+        public static Action spintoSensor() {
+            return new SpinToSensor();
         }
     }
 

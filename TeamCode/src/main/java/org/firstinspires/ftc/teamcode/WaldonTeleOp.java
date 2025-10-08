@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
-//package org.firstinspires.ftc.teamcode.tuning;
 
 import android.graphics.Color;
-
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -16,14 +14,11 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
-
-
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-
+import android.graphics.Color;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 @TeleOp(name="WaldonTeleOp")
-
 public class WaldonTeleOp extends LinearOpMode {
     boolean flywheel = false;
     boolean intake = false;
@@ -31,23 +26,25 @@ public class WaldonTeleOp extends LinearOpMode {
     double lastPressedY = 0;
     double lastPressedA = 0;
     double lastPressedB = 0;
-
     double slow_mode = 1;
+
+    // Declare the color sensor
+    private RevColorSensorV3 colorSensor;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        DcMotorEx frontLeftMotor = hardwareMap.get(DcMotorEx.class,"leftFront");
-        DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class,"leftBack");
-        DcMotorEx frontRightMotor = hardwareMap.get(DcMotorEx.class,"rightBack");
-        DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class,"rightFront");
+        DcMotorEx frontLeftMotor = hardwareMap.get(DcMotorEx.class, "leftFront");
+        DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, "leftBack");
+        DcMotorEx frontRightMotor = hardwareMap.get(DcMotorEx.class, "rightBack");
+        DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "rightFront");
 
-        // Adjust the orientation parameters to match your robot
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         IMU imu = hardwareMap.get(IMU.class, "imu");
-
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.LEFT));
+        imu.initialize(parameters);
+        // Initialize the color sensor
+        colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
 
         frontLeftMotor.setDirection(DcMotorEx.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorEx.Direction.REVERSE);
@@ -62,82 +59,99 @@ public class WaldonTeleOp extends LinearOpMode {
         DigActions.Launcher launcher = new DigActions.Launcher(hardwareMap);
         DigActions.Intake intake = new DigActions.Intake(hardwareMap);
         DigActions.Hopper hopper = new DigActions.Hopper(hardwareMap);
-        //DigActions.Sensors sensors = new DigActions.Sensors(hardwareMap);
         DigActions.Parking parking = new DigActions.Parking(hardwareMap);
 
         waitForStart();
-
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-            // Drive
-            Drive(frontLeftMotor,backLeftMotor, frontRightMotor, backRightMotor, imu);
-            // Intake
-
-            // Index / queue up next artifact
-
-            // Launch
-
-            // Park
-
+            Drive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor, imu);
+            Intake();
+            Index();
+            Launch();
+            Park();
         }
     }
 
-    private void Intake(){
-        if(gamepad2.dpad_up && !intake){
+    private void Intake() {
+        if (gamepad2.dpad_up && !intake) {
             intake = true;
             Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOn()));
         }
-        if(gamepad2.dpad_down && intake){
+        if (gamepad2.dpad_down && intake) {
             intake = false;
             Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOff()));
         }
-        if(gamepad2.dpad_left){
+        if (gamepad2.dpad_left) {
             Actions.runBlocking(new SequentialAction(DigActions.Intake.spitOut()));
         }
     }
 
-    private void Index (){
-        if(gamepad2.left_bumper) {
-            Actions.runBlocking(new SequentialAction(DigActions.Hopper.
-            // Find green ball
+    private void Index() {
+        if (gamepad2.left_bumper) {
+            // Check if the ball is green using hue detection
+            double hue = getBallHue();
+            if (hue >= 90 && hue <= 150) {
+                telemetry.addData("Ball Color", "Green Detected (Hue: %.2f)", hue);
+                // Example action: Accept the green ball
+                // Actions.runBlocking(new SequentialAction(DigActions.Hopper.acceptBall()));
+            } else {
+                telemetry.addData("Ball Color", "Not Green (Hue: %.2f)", hue);
+                // Example action: Reject or ignore non-green ball
+                Actions.runBlocking(new SequentialAction(DigActions.Hopper.spintoSensor()));
+
+            }
+            telemetry.update();
         }
-        if (gamepad2.right_bumper){
-            //find Purple ball
+        if (gamepad2.right_bumper) {
+            // Placeholder for purple ball detection
+            double hue = getBallHue();
+            telemetry.addData("Ball Color", "Checking for Purple (Hue: %.2f)", hue);
+            // Implement purple detection (e.g., hue ~270-300) if needed
+            telemetry.update();
         }
     }
 
-    private void Launch(){
-        // need a button to spin up the flywheel
-        if(gamepad2.x && !flywheel){
+    private double getBallHue() {
+        // Get RGB values from the color sensor
+        int red = colorSensor.red();
+        int green = colorSensor.green();
+        int blue = colorSensor.blue();
+        int myColor = colorSensor.getNormalizedColors().toColor();
+        double hue = JavaUtil.rgbToHue(Color.red(myColor), Color.green(myColor), Color.blue(myColor));
+        // Log RGB and HSV for debugging
+        telemetry.addData("RGB", "R: %d, G: %d, B: %d", red, green, blue);
+        return hue;
+    }
+
+    private void Launch() {
+        if (gamepad2.x && !flywheel) {
             flywheel = true;
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(4000)));
         }
-        if(gamepad2.x && flywheel){
+        if (gamepad2.x && flywheel) {
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(0)));
             flywheel = false;
         }
-        if(gamepad2.y){
+        if (gamepad2.y) {
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.trigger()));
-            // TODO go back and write a smelly trigger action
         }
-
-        // need a button (or two) to launch an artifact
     }
 
-    private void Park(){
-
+    private void Park() {
+        // Implement parking logic if needed
     }
 
-    private void Drive(DcMotorEx frontLeftMotor, DcMotorEx backLeftMotor, DcMotorEx frontRightMotor, DcMotorEx backRightMotor, IMU imu){
+    private void Drive(DcMotorEx frontLeftMotor, DcMotorEx backLeftMotor, DcMotorEx frontRightMotor, DcMotorEx backRightMotor, IMU imu) {
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        // Rotate the movement direction counter to the bot's rotation
-        if(gamepad1.right_bumper) {
-            slow_mode = .5;
+
+        if (gamepad1.right_bumper) {
+            slow_mode = 0.5;
         } else {
             slow_mode = 1;
         }
-        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+
+        double y = -gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
 
@@ -148,11 +162,8 @@ public class WaldonTeleOp extends LinearOpMode {
             imu.resetYaw();
         }
 
-        rotX = rotX * 1.1;  // Counteract imperfect strafing
+        rotX = rotX * 1.1; // Counteract imperfect strafing
 
-        // Denominator is the largest motor power (absolute value) or 1
-        // This ensures all the powers maintain the same ratio,
-        // but only if at least one is out of the range [-1, 1]
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = ((rotY + rotX + rx) / denominator) * slow_mode;
         double backLeftPower = ((rotY - rotX + rx) / denominator) * slow_mode;
@@ -164,5 +175,4 @@ public class WaldonTeleOp extends LinearOpMode {
         frontRightMotor.setPower(frontRightPower);
         backRightMotor.setPower(backRightPower);
     }
-
 }
