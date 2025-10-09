@@ -21,14 +21,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 public class WaldonTeleOp extends LinearOpMode {
     boolean flywheel = false;
     boolean intake = false;
-    boolean robotEnabled = true; // Added for Turn On/Off
+    boolean robotEnabled = true;
     double lastPressedX = 0;
     double lastPressedY = 0;
     double lastPressedA = 0;
     double lastPressedB = 0;
-    double slow_mode = 1.0; // Default speed, can be modified by Turbo
+    double slow_mode = 1.0;
 
-    // Declare the color sensor
     private RevColorSensorV3 colorSensor;
 
     @Override
@@ -43,7 +42,6 @@ public class WaldonTeleOp extends LinearOpMode {
                 RevHubOrientationOnRobot.UsbFacingDirection.LEFT));
         imu.initialize(parameters);
 
-        // Initialize the color sensor
         colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
 
         frontLeftMotor.setDirection(DcMotorEx.Direction.REVERSE);
@@ -101,7 +99,7 @@ public class WaldonTeleOp extends LinearOpMode {
         }
         if (gamepad2.right_bumper) {
             double hue = getBallHue();
-            if (hue >= 270 && hue <= 300) { // Placeholder for purple detection
+            if (hue >= 270 && hue <= 300) {
                 telemetry.addData("Ball Color", "Purple Detected (Hue: %.2f)", hue);
                 // Add action for purple ball if needed
             } else {
@@ -142,21 +140,19 @@ public class WaldonTeleOp extends LinearOpMode {
     private void Drive(DcMotorEx frontLeftMotor, DcMotorEx backLeftMotor, DcMotorEx frontRightMotor, DcMotorEx backRightMotor, IMU imu) {
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-        // Turbo mode (e.g., double speed when Green button pressed)
         if (gamepad2.a && (System.currentTimeMillis() - lastPressedA > 250)) {
-            slow_mode = (slow_mode == 1.0) ? 2.0 : 1.0; // Toggle between normal and turbo
+            slow_mode = (slow_mode == 1.0) ? 2.0 : 1.0; // Toggle Turbo
             lastPressedA = System.currentTimeMillis();
         }
 
         if (gamepad1.right_bumper) {
-            slow_mode = 0.5; // Slow mode override
+            slow_mode = 0.5; // Slow mode
         }
 
         double y = -gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
 
-        // Turn On/Off toggle with right stick button
         if (gamepad1.right_stick_button && (System.currentTimeMillis() - lastPressedB > 250)) {
             robotEnabled = !robotEnabled;
             lastPressedB = System.currentTimeMillis();
@@ -184,5 +180,60 @@ public class WaldonTeleOp extends LinearOpMode {
         backLeftMotor.setPower(backLeftPower);
         frontRightMotor.setPower(frontRightPower);
         backRightMotor.setPower(backRightPower);
+    }
+}
+
+// Inner classes for DigActions (simplified for this example)
+class DigActions {
+    public static class Launcher {
+        private Servo triggerServo;
+        private DcMotorEx launcherMotor; // Assuming a motor for flywheel
+
+        public Launcher(com.qualcomm.robotcore.hardware.HardwareMap hardwareMap) {
+            triggerServo = hardwareMap.get(Servo.class, "launcherTrigger"); // Adjust name
+            launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor"); // Adjust name
+        }
+
+        public void motorOn(int speed) {
+            launcherMotor.setPower(speed / 4000.0); // Normalize speed (0 to 1)
+        }
+
+        public void trigger() {
+            triggerServo.setPosition(1.0); // Fire position
+            try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            triggerServo.setPosition(0.0); // Reset
+        }
+    }
+
+    public static class Intake {
+        // Placeholder methods (assume existing implementation)
+        public static SequentialAction intakeOn() { return new SequentialAction(); }
+        public static SequentialAction intakeOff() { return new SequentialAction(); }
+        public static SequentialAction spitOut() { return new SequentialAction(); }
+    }
+
+    public static class Hopper {
+        private DcMotorEx hopperMotor;
+
+        public Hopper(com.qualcomm.robotcore.hardware.HardwareMap hardwareMap) {
+            hopperMotor = hardwareMap.get(DcMotorEx.class, "hopperMotor"); // Adjust name
+        }
+
+        public void acceptBall() {
+            hopperMotor.setPower(0.5); // Move to accept
+            try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            hopperMotor.setPower(0); // Stop
+        }
+
+        public void spintoSensor() {
+            hopperMotor.setPower(-0.5); // Move to sensor
+            try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            hopperMotor.setPower(0); // Stop
+        }
+    }
+
+    public static class Parking {
+        // Placeholder method
+        public Parking(com.qualcomm.robotcore.hardware.HardwareMap hardwareMap) {}
     }
 }
