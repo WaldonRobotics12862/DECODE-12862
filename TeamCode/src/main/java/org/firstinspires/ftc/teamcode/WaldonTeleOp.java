@@ -90,10 +90,10 @@ public class WaldonTeleOp extends LinearOpMode {
             double hue = getBallHue();
             if (hue >= 90 && hue <= 150) {
                 telemetry.addData("Ball Color", "Green Detected (Hue: %.2f)", hue);
-                Actions.runBlocking(new SequentialAction(DigActions.Hopper.acceptBall()));
+                //Actions.runBlocking(new SequentialAction(DigActions.Hopper.acceptBall()));
             } else {
                 telemetry.addData("Ball Color", "Not Green (Hue: %.2f)", hue);
-                Actions.runBlocking(new SequentialAction(DigActions.Hopper.spintoSensor()));
+                //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spintoSensor()));
             }
             telemetry.update();
         }
@@ -129,7 +129,7 @@ public class WaldonTeleOp extends LinearOpMode {
             flywheel = false;
         }
         if (gamepad2.y) {
-            Actions.runBlocking(new SequentialAction(DigActions.Launcher.trigger()));
+            //Actions.runBlocking(new SequentialAction(DigActions.Launcher.trigger()));
         }
     }
 
@@ -183,57 +183,3 @@ public class WaldonTeleOp extends LinearOpMode {
     }
 }
 
-// Inner classes for DigActions (simplified for this example)
-class DigActions {
-    public static class Launcher {
-        private Servo triggerServo;
-        private DcMotorEx launcherMotor; // Assuming a motor for flywheel
-
-        public Launcher(com.qualcomm.robotcore.hardware.HardwareMap hardwareMap) {
-            triggerServo = hardwareMap.get(Servo.class, "launcherTrigger"); // Adjust name
-            launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor"); // Adjust name
-        }
-
-        public void motorOn(int speed) {
-            launcherMotor.setPower(speed / 4000.0); // Normalize speed (0 to 1)
-        }
-
-        public void trigger() {
-            triggerServo.setPosition(1.0); // Fire position
-            try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-            triggerServo.setPosition(0.0); // Reset
-        }
-    }
-
-    public static class Intake {
-        // Placeholder methods (assume existing implementation)
-        public static SequentialAction intakeOn() { return new SequentialAction(); }
-        public static SequentialAction intakeOff() { return new SequentialAction(); }
-        public static SequentialAction spitOut() { return new SequentialAction(); }
-    }
-
-    public static class Hopper {
-        private DcMotorEx hopperMotor;
-
-        public Hopper(com.qualcomm.robotcore.hardware.HardwareMap hardwareMap) {
-            hopperMotor = hardwareMap.get(DcMotorEx.class, "hopperMotor"); // Adjust name
-        }
-
-        public void acceptBall() {
-            hopperMotor.setPower(0.5); // Move to accept
-            try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-            hopperMotor.setPower(0); // Stop
-        }
-
-        public void spintoSensor() {
-            hopperMotor.setPower(-0.5); // Move to sensor
-            try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-            hopperMotor.setPower(0); // Stop
-        }
-    }
-
-    public static class Parking {
-        // Placeholder method
-        public Parking(com.qualcomm.robotcore.hardware.HardwareMap hardwareMap) {}
-    }
-}
