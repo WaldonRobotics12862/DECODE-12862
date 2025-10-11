@@ -43,7 +43,7 @@ public class DigActions {
             }
         }
         public static Action motorOn(Integer rpm) {
-            return new MotorOn(rpm);
+            return new MotorOn();
         }
 
         public static class ReadAprilTag implements Action {

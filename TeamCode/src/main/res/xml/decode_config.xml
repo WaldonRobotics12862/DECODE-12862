@@ -8,7 +8,7 @@
             <goBILDA5202SeriesMotor name="leftBack" port="1" />
             <goBILDA5202SeriesMotor name="spin" port="2" />
 
-            <RevColorSensorV3 name="color" port="0" bus="1" />
+            <RevColorSensorV3 name="colorSensor" port="0" bus="1" />
         </LynxModule>
 
         <LynxModule name="Control Hub" port="173">
@@ -19,6 +19,7 @@
 
             <ServoFullRange name="trigger" port="0" />
             <ContinuousRotationServo name="spin" port="2" />
+            <ContinuousRotationServo name="turret" port="3" />
 
             <DigitalDevice name="mag" port="0" />
             <SparkFunOTOS name="otos" port="0" bus="1" />
