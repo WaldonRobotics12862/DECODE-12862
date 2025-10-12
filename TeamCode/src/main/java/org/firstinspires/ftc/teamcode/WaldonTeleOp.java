@@ -39,8 +39,8 @@ public class WaldonTeleOp extends LinearOpMode {
         DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "rightFront");
         IMU imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.LEFT));
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         imu.initialize(parameters);
 
         colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
@@ -73,12 +73,12 @@ public class WaldonTeleOp extends LinearOpMode {
     }
 
     private void Intake() {
-        if (gamepad2.dpad_up && !intake) {
-            intake = true;
+        if (gamepad2.dpad_up) {
+            //intake = true;
             Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOn()));
         }
-        if (gamepad2.dpad_down && intake) {
-            intake = false;
+        if (gamepad2.dpad_down) {
+            //intake = false;
             Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOff()));
         }
         if (gamepad2.dpad_left) {
@@ -126,11 +126,11 @@ public class WaldonTeleOp extends LinearOpMode {
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(4000)));
         }
         if (gamepad2.x && flywheel) {
-            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(0)));
             flywheel = false;
+            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
         }
         if (gamepad2.y) {
-            //Actions.runBlocking(new SequentialAction(DigActions.Launcher.trigger()));
+            Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
         }
     }
 

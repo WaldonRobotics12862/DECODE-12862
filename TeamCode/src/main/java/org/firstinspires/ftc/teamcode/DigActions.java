@@ -1,4 +1,6 @@
 package org.firstinspires.ftc.teamcode;
+import static java.lang.Thread.sleep;
+
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
@@ -21,29 +23,38 @@ public class DigActions {
     public static class Launcher {
         private static DcMotorEx flywheelmotor;
         private static CRServo turret;
+        private static Servo trigger;
 
         public Launcher(HardwareMap hardwareMap) {
             // Launcher initialization, e.g., configuring motors or sensors
             flywheelmotor = hardwareMap.get(DcMotorEx.class, "flywheel");
             turret = hardwareMap.get(CRServo.class, "turret");
+            trigger = hardwareMap.get(Servo.class, "trigger");
 
+            flywheelmotor.setDirection(DcMotorEx.Direction.REVERSE);
+            trigger.setPosition(0);
         }
 
         public static class MotorOn implements Action {
-            public Integer rpm;
+            private Integer rpm;
+            private boolean initialized = false;
+            public MotorOn(Integer rpm) {
+                this.rpm = rpm;
+            }
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                flywheelmotor.setVelocity(rpm);
-                double flyWheelSpeed = flywheelmotor.getVelocity();
-                if (flyWheelSpeed > (rpm*0.9)) {
-                    return false;
-                } else {
-                    return true;
+                if (!initialized) {
+                    flywheelmotor.setVelocity(rpm);
+                    initialized = true;
                 }
+                double vel = flywheelmotor.getVelocity();
+                packet.put("shooterVelocity", vel);
+                return vel < rpm * 0.95;
+                //return false;
             }
         }
         public static Action motorOn(Integer rpm) {
-            return new MotorOn();
+            return new MotorOn(rpm);
         }
 
         public static class ReadAprilTag implements Action {
@@ -71,6 +82,7 @@ public class DigActions {
         public static class MotorOff implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                flywheelmotor.setVelocity(0);
                 flywheelmotor.setPower(0);
                 return false;
             }
@@ -89,6 +101,28 @@ public class DigActions {
         public static Action detectDistance() {
             return new DetectDistance();
         }
+
+        public static class PullTrigger implements Action{
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                trigger.setPosition(1);
+                try {
+                    sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                trigger.setPosition(0);
+                try {
+                    sleep(250);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                return false;
+            }
+        }
+        public static Action pullTrigger() {
+            return new PullTrigger();
+        }
     }
 
     public static class Sensors {
@@ -96,13 +130,17 @@ public class DigActions {
     }
 
     public static class Intake {
+        private static DcMotorEx intake;
+
         public Intake(HardwareMap hardwareMap) {
             // 1 Motor, 2 Direction
+            intake = hardwareMap.get(DcMotorEx.class, "intake");
         }
 
         public static class IntakeOn implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                intake.setPower(1);
                 return false;
             }
         }
@@ -114,6 +152,7 @@ public class DigActions {
         public static class IntakeOff implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                intake.setPower(0);
                 return false;
             }
         }
@@ -125,6 +164,7 @@ public class DigActions {
         public static class SpitOut implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                intake.setPower(-1);
                 return false;
             }
         }
