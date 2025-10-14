@@ -36,24 +36,25 @@ public class DigActions {
         }
 
         public static class MotorOn implements Action {
-            private Integer rpm;
+            private final double rpm;
             private boolean initialized = false;
-            public MotorOn(Integer rpm) {
+            public MotorOn(double rpm) {
                 this.rpm = rpm;
             }
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    flywheelmotor.setVelocity(rpm);
+                    flywheelmotor.setVelocity(rpm * 28.0 / 60.0);
                     initialized = true;
                 }
-                double vel = flywheelmotor.getVelocity();
+                double vel = flywheelmotor.getVelocity() * 60.0 / 28.0;
+                packet.put("Target rpm: ", rpm);
                 packet.put("shooterVelocity", vel);
-                return vel < rpm * 0.95;
-                //return false;
+                //return vel < rpm * 0.95;
+                return false;
             }
         }
-        public static Action motorOn(Integer rpm) {
+        public static Action motorOn(double rpm) {
             return new MotorOn(rpm);
         }
 
