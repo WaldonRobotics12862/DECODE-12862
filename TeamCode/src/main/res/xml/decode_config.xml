@@ -21,10 +21,10 @@
             <ContinuousRotationServo name="spin" port="2" />
             <ContinuousRotationServo name="turret" port="3" />
 
-            <DigitalDevice name="mag" port="0" />
-            <SparkFunOTOS name="otos" port="0" bus="1" />
+            <DigitalDevice name="mag" port="1" />
+            <SparkFunOTOS name="sensor_otos" port="0" bus="1" />
 
-            <ControlHubImuBHI260AP name="imu" port="0" bus="0" />
+            <AndyMarkIMU name="imu" port="0" bus="2" />
         </LynxModule>
 
     </LynxUsbDevice>

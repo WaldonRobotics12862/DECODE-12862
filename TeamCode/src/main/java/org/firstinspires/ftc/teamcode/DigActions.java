@@ -176,13 +176,13 @@ public class DigActions {
     }
 
     public static class Hopper {
-        private static DigitalChannel magSensor;
-        private static DcMotorEx spin;
+        static DigitalChannel magSensor;
+        private static CRServo spin;
 
         public Hopper(HardwareMap hardwareMap) {
             // Hopper initialization, e.g., configuring motors or sensors
             magSensor = hardwareMap.get(DigitalChannel.class, "mag");
-            spin = hardwareMap.get(DcMotorEx.class, "spin");
+            spin = hardwareMap.get(CRServo.class, "spin");
 
         }
 
@@ -233,8 +233,9 @@ public class DigActions {
         public static class SpinToSensor implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                spin.setPower(0.1);
+                spin.setPower(1);
                 // add sleep maybe????
+                packet.addLine("Mag Sensor: " + magSensor.getState());
                 if (magSensor.getState()) {
                     return true;
                 } else {
@@ -243,8 +244,7 @@ public class DigActions {
                 }
             }
         }
-
-        public static Action spintoSensor() {
+        public static Action spinToSensor(){
             return new SpinToSensor();
         }
     }

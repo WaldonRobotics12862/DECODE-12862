@@ -1,6 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
+
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -12,6 +17,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -24,6 +30,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp(name="WaldonTeleOp")
@@ -39,8 +46,14 @@ public class WaldonTeleOp extends LinearOpMode {
     double redDistance = 0;
     double blueDistance = 0;
     int goalDetected = 0;
+    boolean spinSpindexer = false;
+    long xButtonDebounce = 0;
 
     private RevColorSensorV3 colorSensor;
+    private FtcDashboard dash = FtcDashboard.getInstance();
+    private List<Action> runningActions = new ArrayList<>();
+    TelemetryPacket packet = null;
+
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
@@ -56,6 +69,10 @@ public class WaldonTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
         initAprilTag();
 
         DcMotorEx frontLeftMotor = hardwareMap.get(DcMotorEx.class, "leftFront");
@@ -71,8 +88,8 @@ public class WaldonTeleOp extends LinearOpMode {
 
         colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
 
-        frontLeftMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        frontLeftMotor.setDirection(DcMotorEx.Direction.FORWARD);
+        backLeftMotor.setDirection(DcMotorEx.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorEx.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorEx.Direction.FORWARD);
 
@@ -100,6 +117,20 @@ public class WaldonTeleOp extends LinearOpMode {
             Park();
             spindexer.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
             telemetryAprilTag();
+            List<Action> newActions = new ArrayList<>();
+
+            if(!hopper.magSensor.getState()){
+                spinSpindexer=false;
+            }
+
+            if(spinSpindexer){
+                spindexer.setPower(1);
+            } else {
+                spindexer.setPower(0);
+            }
+
+            //dash.sendTelemetryPacket(packet);
+            telemetry.addData("Mag Sensor: ", hopper.magSensor.getState());
             telemetry.update();
         }
         visionPortal.close();
@@ -122,7 +153,7 @@ public class WaldonTeleOp extends LinearOpMode {
     }
 
     private void Index() {
-
+        //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
 
 
         if (gamepad2.left_bumper) {
@@ -137,6 +168,11 @@ public class WaldonTeleOp extends LinearOpMode {
             telemetry.update();
         }
         if (gamepad2.right_bumper) {
+            spinSpindexer=true;
+            //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
+            //runningActions.add(new SequentialAction(DigActions.Hopper.spinToSensor()));
+
+
             double hue = getBallHue();
             if (hue >= 270 && hue <= 300) {
                 telemetry.addData("Ball Color", "Purple Detected (Hue: %.2f)", hue);
@@ -159,13 +195,17 @@ public class WaldonTeleOp extends LinearOpMode {
     }
 
     private void Launch() {
-        if (gamepad2.x && !flywheel) {
+
+
+        if (gamepad2.x && !flywheel && (System.currentTimeMillis() - xButtonDebounce > 500)) {
+            xButtonDebounce = System.currentTimeMillis();
             flywheel = true;
             // calculate the speed of the flywheel based on how far away we are
-            double targetFlywheelSpeed = (redDistance+blueDistance) * 28.0;
+            double targetFlywheelSpeed = ((redDistance+blueDistance) * 25.0) + 1250;
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
         }
-        if (gamepad2.x && flywheel) {
+        if (gamepad2.x && flywheel && (System.currentTimeMillis() - xButtonDebounce > 500)) {
+            xButtonDebounce = System.currentTimeMillis();
             flywheel = false;
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
         }
