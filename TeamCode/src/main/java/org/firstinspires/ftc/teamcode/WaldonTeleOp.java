@@ -42,6 +42,7 @@ public class WaldonTeleOp extends LinearOpMode {
     double lastPressedY = 0;
     double lastPressedA = 0;
     double lastPressedB = 0;
+    double lastPressedbumper = 0;
     double slow_mode = 1.0;
     double redDistance = 0;
     double blueDistance = 0;
@@ -118,17 +119,6 @@ public class WaldonTeleOp extends LinearOpMode {
             spindexer.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
             telemetryAprilTag();
             List<Action> newActions = new ArrayList<>();
-
-            if(!hopper.magSensor.getState()){
-                spinSpindexer=false;
-            }
-
-            if(spinSpindexer){
-                spindexer.setPower(1);
-            } else {
-                spindexer.setPower(0);
-            }
-
             //dash.sendTelemetryPacket(packet);
             telemetry.addData("Mag Sensor: ", hopper.magSensor.getState());
             telemetry.update();
@@ -168,11 +158,8 @@ public class WaldonTeleOp extends LinearOpMode {
             telemetry.update();
         }
         if (gamepad2.right_bumper) {
-            spinSpindexer=true;
+            //spinSpindexer=true;
             //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
-            //runningActions.add(new SequentialAction(DigActions.Hopper.spinToSensor()));
-
-
             double hue = getBallHue();
             if (hue >= 270 && hue <= 300) {
                 telemetry.addData("Ball Color", "Purple Detected (Hue: %.2f)", hue);
@@ -221,13 +208,18 @@ public class WaldonTeleOp extends LinearOpMode {
     private void Drive(DcMotorEx frontLeftMotor, DcMotorEx backLeftMotor, DcMotorEx frontRightMotor, DcMotorEx backRightMotor, IMU imu) {
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-        if (gamepad2.a && (System.currentTimeMillis() - lastPressedA > 250)) {
-            slow_mode = (slow_mode == 1.0) ? 2.0 : 1.0; // Toggle Turbo
-            lastPressedA = System.currentTimeMillis();
+        if (gamepad1.a) {
+            imu.resetYaw();
         }
 
-        if (gamepad1.right_bumper) {
-            slow_mode = 0.5; // Slow mode
+        if (gamepad1.left_bumper && (System.currentTimeMillis() - lastPressedA > 250)) {
+            slow_mode = (slow_mode == 1.0) ? 2.0 : 1.0; // Toggle Turbo
+            lastPressedbumper = System.currentTimeMillis();
+        }
+
+        if (gamepad1.right_bumper && (System.currentTimeMillis() - lastPressedA > 250)) {
+            slow_mode = (slow_mode == 1.0) ? 0.5 : 1.0; // Toggle Turbo
+            lastPressedbumper = System.currentTimeMillis();
         }
 
         double y = -gamepad1.left_stick_y;

@@ -49,6 +49,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 
+import java.util.List;
 
 
 @TeleOp(name="Waldon Testing")
@@ -71,6 +72,8 @@ public class Waldon_Testing extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
+
+
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel.setDirection(DcMotorEx.Direction.REVERSE);
         flywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
@@ -91,13 +94,15 @@ public class Waldon_Testing extends LinearOpMode {
                 Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(A_speed)));
             }
             if(gamepad1.b) {
-                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(B_speed)));
+                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
+                // Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(B_speed)));
             }
             if(gamepad1.x) {
                 Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(X_speed)));
             }
             if(gamepad1.y) {
-                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(Y_speed)));
+                Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
+                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(Y_speed)));
             }
             if(gamepad1.guide) {
                 Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
@@ -109,3 +114,4 @@ public class Waldon_Testing extends LinearOpMode {
         }
     }
 }
+

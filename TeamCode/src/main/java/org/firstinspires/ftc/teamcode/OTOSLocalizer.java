@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class OTOSLocalizer implements Localizer {
     public static class Params {
         public double angularScalar = 0.9918;
-        public double linearScalar = -0.48636;
+        public double linearScalar = 1.006;
 
         // Note: units are in inches and radians
         public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(1.5, -1, 3.0981);
@@ -28,8 +28,6 @@ public class OTOSLocalizer implements Localizer {
     private Pose2d currentPose;
 
     public OTOSLocalizer(HardwareMap hardwareMap, Pose2d initialPose) {
-        // TODO: make sure your config has an OTOS device with this name
-        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         otos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
         currentPose = initialPose;
         otos.setPosition(OTOSKt.toOTOSPose(currentPose));
