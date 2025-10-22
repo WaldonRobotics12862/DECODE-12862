@@ -1,0 +1,13 @@
+myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-49, -49, Math.toRadians(55))) // Start pose: Y negated, heading = 180° - 125° = 55°
+                .waitSeconds(2)
+                .lineToX(-24) // X unchanged
+                .waitSeconds(2.5)
+                .setTangent(Math.toRadians(180)) // Tangent mirrored: 0° → 180°
+                .splineToLinearHeading(new Pose2d(-12, -24, Math.toRadians(90)), Math.toRadians(90)) // Y negated
+                .lineToY(-48) // Y negated
+                .setTangent(Math.toRadians(90)) // Tangent mirrored: 270° → 90°
+                .splineToLinearHeading(new Pose2d(-24, -24, Math.toRadians(45)), Math.toRadians(90)) // Y negated, heading = 180° - 135° = 45°
+                .waitSeconds(2.5)
+                .splineToLinearHeading(new Pose2d(-60, -24, Math.toRadians(0)), Math.toRadians(0)) // Y negated, heading = 180° - 180° = 0°
+                //.lineToX(-24) // Commented out in original, remains unchanged
+                .build());
