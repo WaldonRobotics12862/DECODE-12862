@@ -178,74 +178,72 @@ public class DigActions {
     public static class Hopper {
         static DigitalChannel magSensor;
         private static CRServo spin;
+        private static DcMotor spin_encoder;
 
         public Hopper(HardwareMap hardwareMap) {
             // Hopper initialization, e.g., configuring motors or sensors
             magSensor = hardwareMap.get(DigitalChannel.class, "mag");
             spin = hardwareMap.get(CRServo.class, "spin");
+            spin_encoder = hardwareMap.get(DcMotor.class, "spin_encoder");
 
         }
-
-        public static class MotorTurn implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-
-        public static Action motorTurn() {
-            return new MotorTurn();
-        }
-
-        public static class IdentifyBall implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-
-        public static Action identifyBall() {
-            return new IdentifyBall();
-        }
-
-        public static class IdentifyOrder implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-
-        public static Action identifyOrder() {
-            return new IdentifyOrder();
-        }
-
-        public static class Sequencing implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                return false;
-            }
-        }
-
-        public static Action sequencing() {
-            return new Sequencing();
-        }
-
         public static class SpinToSensor implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                spin.setPower(1);
-                // add sleep maybe????
-                packet.addLine("Mag Sensor: " + magSensor.getState());
-                if (magSensor.getState()) {
+                int encoder_location = spin_encoder.getCurrentPosition();
+
+                double en_power = (3000 - encoder_location)*.00015;
+                if(en_power < 0.1){en_power = 0.1;}
+                packet.put("encoder power",en_power);
+                spin.setPower(en_power);
+
+                if (encoder_location < 2620) { //2731
                     return true;
                 } else {
                     spin.setPower(0);
+                    spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     return false;
                 }
             }
         }
         public static Action spinToSensor(){
             return new SpinToSensor();
+        }
+        public static class MotorTurn implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action motorTurn() {
+            return new MotorTurn();
+        }
+        public static class IdentifyBall implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action identifyBall() {
+            return new IdentifyBall();
+        }
+        public static class IdentifyOrder implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action identifyOrder() {
+            return new IdentifyOrder();
+        }
+        public static class Sequencing implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                return false;
+            }
+        }
+        public static Action sequencing() {
+            return new Sequencing();
         }
     }
 

@@ -31,6 +31,7 @@ public class RedGoalAuton extends LinearOpMode {
         Pose2d beginPose = new Pose2d(-49, 49, Math.toRadians(125));
         Pose2d launchPose = new Pose2d(-24, 24,Math.toRadians(135));
         Pose2d parkPose = new Pose2d(-60,24,Math.toRadians(180));
+
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
 
         Action all_drives = drive.actionBuilder(beginPose)
@@ -45,8 +46,8 @@ public class RedGoalAuton extends LinearOpMode {
                 .build();
 
         Action drive_to_launch_1 = drive.actionBuilder(beginPose)
-                .setTangent(Math.toRadians(-35))
-                .splineToLinearHeading(launchPose,Math.toRadians(-35))
+                //.setTangent(Math.toRadians(-35))
+                .splineToLinearHeading(launchPose,Math.toRadians(125))
                 .build();
 
         Action drive_to_intake_1 = drive.actionBuilder(launchPose)
@@ -65,6 +66,7 @@ public class RedGoalAuton extends LinearOpMode {
         waitForStart();
         Actions.runBlocking(
                 new SequentialAction(
+                        drive_to_launch_1
                         //new SleepAction(1000),
                         //launch three artifacts
                         //new ParallelAction(drive_to_intake_1,DigActions.Intake.intakeOn()),
@@ -72,7 +74,7 @@ public class RedGoalAuton extends LinearOpMode {
                         //launch three artifacts
                         //park
 
-                        all_drives
+                        //all_drives
                 )
         );
 }

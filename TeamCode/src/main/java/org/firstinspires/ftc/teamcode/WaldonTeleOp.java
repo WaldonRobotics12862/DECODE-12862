@@ -53,6 +53,8 @@ public class WaldonTeleOp extends LinearOpMode {
     private RevColorSensorV3 colorSensor;
     private FtcDashboard dash = FtcDashboard.getInstance();
     private List<Action> runningActions = new ArrayList<>();
+    //public DcMotorEx spinEncoder;
+
     TelemetryPacket packet = null;
 
 
@@ -82,6 +84,10 @@ public class WaldonTeleOp extends LinearOpMode {
         DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "rightFront");
         IMU imu = hardwareMap.get(IMU.class, "imu");
 
+        DcMotorEx spinEncoder = hardwareMap.get(DcMotorEx.class, "spin_encoder");
+
+
+
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
@@ -98,6 +104,8 @@ public class WaldonTeleOp extends LinearOpMode {
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
 
         CRServo spindexer = hardwareMap.get(CRServo.class, "spin");
 
@@ -112,11 +120,11 @@ public class WaldonTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             Drive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor, imu);
             Intake();
-            Index();
+            Index(spinEncoder);
             WaldonAprilTag();
             Launch();
             Park();
-            spindexer.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+            spindexer.setPower((gamepad2.right_trigger - gamepad2.left_trigger)*.1);
             telemetryAprilTag();
             List<Action> newActions = new ArrayList<>();
             //dash.sendTelemetryPacket(packet);
@@ -142,10 +150,10 @@ public class WaldonTeleOp extends LinearOpMode {
 
     }
 
-    private void Index() {
+    private void Index(DcMotorEx spinEncoder) {
         //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
 
-
+        spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         if (gamepad2.left_bumper) {
             double hue = getBallHue();
             if (hue >= 90 && hue <= 150) {
@@ -159,7 +167,8 @@ public class WaldonTeleOp extends LinearOpMode {
         }
         if (gamepad2.right_bumper) {
             //spinSpindexer=true;
-            //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
+            spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
             double hue = getBallHue();
             if (hue >= 270 && hue <= 300) {
                 telemetry.addData("Ball Color", "Purple Detected (Hue: %.2f)", hue);

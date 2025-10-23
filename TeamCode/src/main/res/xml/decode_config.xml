@@ -6,7 +6,7 @@
         <LynxModule name="Expansion Hub 2" port="2">
             <goBILDA5202SeriesMotor name="leftFront" port="0" />
             <goBILDA5202SeriesMotor name="leftBack" port="1" />
-            <goBILDA5202SeriesMotor name="spin" port="2" />
+            <goBILDA5202SeriesMotor name="spin_encoder" port="3" />
 
             <RevColorSensorV3 name="colorSensor" port="0" bus="1" />
         </LynxModule>
