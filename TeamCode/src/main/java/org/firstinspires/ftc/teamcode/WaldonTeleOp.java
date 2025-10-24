@@ -49,6 +49,13 @@ public class WaldonTeleOp extends LinearOpMode {
     int goalDetected = 0;
     boolean spinSpindexer = false;
     long xButtonDebounce = 0;
+    int encoder_location = 0;
+    double en_power=0;
+
+    //DcMotorEx spin_encoder = hardwareMap.get(DcMotorEx.class, "spin_encoder");
+
+
+
 
     private RevColorSensorV3 colorSensor;
     private FtcDashboard dash = FtcDashboard.getInstance();
@@ -86,8 +93,6 @@ public class WaldonTeleOp extends LinearOpMode {
 
         DcMotorEx spinEncoder = hardwareMap.get(DcMotorEx.class, "spin_encoder");
 
-
-
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
@@ -120,7 +125,7 @@ public class WaldonTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             Drive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor, imu);
             Intake();
-            Index(spinEncoder);
+            Index(spinEncoder, spindexer);
             WaldonAprilTag();
             Launch();
             Park();
@@ -130,6 +135,19 @@ public class WaldonTeleOp extends LinearOpMode {
             //dash.sendTelemetryPacket(packet);
             telemetry.addData("Mag Sensor: ", hopper.magSensor.getState());
             telemetry.update();
+
+            TelemetryPacket packet = new TelemetryPacket();
+
+            List<Action> newAction = new ArrayList<>();
+            for (Action action : runningActions) {
+                action.preview(packet.fieldOverlay());
+                if(action.run(packet)){
+                    newAction.add(action);
+                }
+            }
+            runningActions = newAction;
+
+            dash.sendTelemetryPacket(packet);
         }
         visionPortal.close();
 
@@ -150,10 +168,10 @@ public class WaldonTeleOp extends LinearOpMode {
 
     }
 
-    private void Index(DcMotorEx spinEncoder) {
+    private void Index(DcMotorEx spin_encoder, CRServo spindexer) {
         //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
 
-        spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         if (gamepad2.left_bumper) {
             double hue = getBallHue();
             if (hue >= 90 && hue <= 150) {
@@ -166,9 +184,25 @@ public class WaldonTeleOp extends LinearOpMode {
             telemetry.update();
         }
         if (gamepad2.right_bumper) {
-            //spinSpindexer=true;
-            spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
+            spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            // This is the method that we were trying on Thursday but it wasn't working, potentially
+            // because there is no hold-off on the button press and it would restart multiple times
+            spinSpindexer=true;
+
+            // This is what I 'thought' we should be doing, based on the documentation in the Road
+            // Runner docs site. It adds the action to a queue but I think there's a problem with
+            // removing it from the queue and that's the problem. It would run and then restart again.
+            // Possibly if I remove the "STOP_AND_RESET_ENCODER" in the spinToSenosr method, it
+            // would stop but then I think it's still added to the queue
+            //runningActions.add(new SequentialAction(DigActions.Hopper.spinToSensor()));
+
+
+            // This is what I would do if I wanted to block all other actions from happening. The
+            // code works, but it's blocking other things from going on, so not what we want.
+            //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
+
+
             double hue = getBallHue();
             if (hue >= 270 && hue <= 300) {
                 telemetry.addData("Ball Color", "Purple Detected (Hue: %.2f)", hue);
@@ -178,6 +212,22 @@ public class WaldonTeleOp extends LinearOpMode {
             }
             telemetry.update();
         }
+
+        if (spinSpindexer){
+            encoder_location = spin_encoder.getCurrentPosition();
+            en_power = (3000 - encoder_location)*.00015;
+            if(en_power < 0.1){en_power = 0.1;}
+
+            spindexer.setPower(en_power);
+
+            if (encoder_location > 2620) { //2731
+                spinSpindexer = false;
+                spindexer.setPower(0);
+                spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            }
+
+        }
+
     }
 
     private double getBallHue() {
