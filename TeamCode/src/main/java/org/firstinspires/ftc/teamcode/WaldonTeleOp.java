@@ -49,6 +49,8 @@ public class WaldonTeleOp extends LinearOpMode {
     int goalDetected = 0;
     boolean spinSpindexer = false;
     long xButtonDebounce = 0;
+    long r_bump_ButtonDebounce = 0;
+    long l_bump_ButtonDebounce = 0;
     int encoder_location = 0;
     double en_power=0;
 
@@ -169,10 +171,9 @@ public class WaldonTeleOp extends LinearOpMode {
     }
 
     private void Index(DcMotorEx spin_encoder, CRServo spindexer) {
-        //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
 
-        spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        if (gamepad2.left_bumper) {
+        if (gamepad2.left_bumper && (System.currentTimeMillis() - l_bump_ButtonDebounce > 500)) {
+            l_bump_ButtonDebounce = System.currentTimeMillis();
             double hue = getBallHue();
             if (hue >= 90 && hue <= 150) {
                 telemetry.addData("Ball Color", "Green Detected (Hue: %.2f)", hue);
@@ -183,7 +184,8 @@ public class WaldonTeleOp extends LinearOpMode {
             }
             telemetry.update();
         }
-        if (gamepad2.right_bumper) {
+        if (gamepad2.right_bumper && (System.currentTimeMillis() - r_bump_ButtonDebounce > 500)) {
+            r_bump_ButtonDebounce = System.currentTimeMillis();
             spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
             // This is the method that we were trying on Thursday but it wasn't working, potentially
