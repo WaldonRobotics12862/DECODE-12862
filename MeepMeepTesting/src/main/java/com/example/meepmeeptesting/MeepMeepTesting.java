@@ -12,22 +12,34 @@ public class MeepMeepTesting {
 
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set your robot's constraints: maxVel (in/s), maxAccel (in/s²), maxAngVel (rad/s), maxAngAccel (rad/s²), trackWidth (in)
-                .setConstraints(50, 50, Math.toRadians(180), Math.toRadians(180), 14)
+                .setConstraints(50, 50, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-49, -49, Math.toRadians(55))) // Start pose: Y negated, heading = 180° - 125° = 55°
-                .waitSeconds(2)
-                .lineToX(-24) // X unchanged
-                .waitSeconds(2.5)
-                .setTangent(Math.toRadians(180)) // Tangent mirrored: 0° → 180°
-                .splineToLinearHeading(new Pose2d(-12, -24, Math.toRadians(90)), Math.toRadians(90)) // Y negated
-                .lineToY(-48) // Y negated
-                .setTangent(Math.toRadians(90)) // Tangent mirrored: 270° → 90°
-                .splineToLinearHeading(new Pose2d(-24, -24, Math.toRadians(45)), Math.toRadians(90)) // Y negated, heading = 180° - 135° = 45°
-                .waitSeconds(2.5)
-                .splineToLinearHeading(new Pose2d(-60, -24, Math.toRadians(0)), Math.toRadians(0)) // Y negated, heading = 180° - 180° = 0°
-                //.lineToX(-24) // Commented out in original, remains unchanged
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, -12, Math.toRadians(0)))  // Blue audience start: facing toward the field (positive y)
+                .splineToLinearHeading(new Pose2d(2, -12, Math.toRadians(-20)),0)
+                .splineToLinearHeading(new Pose2d(24,-24,Math.toRadians(-90)),0)
+                //.splineToLinearHeading(new Pose2d(58,-12,0),180)
+                //.turn(Math.toRadians(20))
+                //.waitSeconds(1)  // Simulate dropping pixel (comment out hardware code)
+                //.splineTo(new Vector2d(36, -32), Math.toRadians(-90))
+                //.lineToY(-50)
+                //.setTangent(90)
+                //.splineToLinearHeading(new Pose2d(58,-12,Math.toRadians(200)),Math.toRadians(0))
                 .build());
+
+        //myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-49, -49, Math.toRadians(55))) // Start pose: Y negated, heading = 180° - 125° = 55°
+        //        .waitSeconds(2)
+        //        .lineToX(-24) // X unchanged
+        //        .waitSeconds(2.5)
+         //       .setTangent(Math.toRadians(180)) // Tangent mirrored: 0° → 180°
+        //        .splineToLinearHeading(new Pose2d(-12, -24, Math.toRadians(90)), Math.toRadians(90)) // Y negated
+        //        .lineToY(-48) // Y negated
+        //        .setTangent(Math.toRadians(90)) // Tangent mirrored: 270° → 90°
+        //        .splineToLinearHeading(new Pose2d(-24, -24, Math.toRadians(45)), Math.toRadians(90)) // Y negated, heading = 180° - 135° = 45°
+        //        .waitSeconds(2.5)
+        //        .splineToLinearHeading(new Pose2d(-60, -24, Math.toRadians(0)), Math.toRadians(0)) // Y negated, heading = 180° - 180° = 0°
+        //        //.lineToX(-24) // Commented out in original, remains unchanged
+        //        .build());
         // Blue Audience Auton
        // myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(62, 12, Math.toRadians(180)))  // Blue audience start: facing toward the field (positive y)
                 //.lineToX(58)

@@ -44,6 +44,7 @@ public class DigActions {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
+                    flywheelmotor.setVelocityPIDFCoefficients(100,20,20,1);
                     flywheelmotor.setVelocity(rpm * 28.0 / 60.0);
                     initialized = true;
                 }
@@ -108,7 +109,7 @@ public class DigActions {
             public boolean run(@NonNull TelemetryPacket packet) {
                 trigger.setPosition(1);
                 try {
-                    sleep(500);
+                    sleep(750);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -193,11 +194,11 @@ public class DigActions {
                 int encoder_location = spin_encoder.getCurrentPosition();
 
                 double en_power = (3000 - encoder_location)*.00015;
-                if(en_power < 0.1){en_power = 0.1;}
+                if(en_power < 0.075){en_power = 0.075;}
                 packet.put("encoder power",en_power);
                 spin.setPower(en_power);
 
-                if (encoder_location < 2620) { //2731
+                if (encoder_location < 2640) { //2731
                     return true;
                 } else {
                     spin.setPower(0);
@@ -212,15 +213,30 @@ public class DigActions {
         public static class MotorTurn implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                spin.setPower(1);
                 return false;
             }
         }
         public static Action motorTurn() {
             return new MotorTurn();
         }
+
+        public static class  MotorOff implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                spin.setPower(0);
+                return false;
+            }
+        }
+        public static Action motorOff() {
+            return new MotorOff();
+        }
+
+
         public static class IdentifyBall implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+
                 return false;
             }
         }

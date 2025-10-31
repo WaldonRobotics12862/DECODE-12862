@@ -48,9 +48,11 @@ public class WaldonTeleOp extends LinearOpMode {
     double blueDistance = 0;
     int goalDetected = 0;
     boolean spinSpindexer = false;
+    boolean intakeSpindexer=false;
     long xButtonDebounce = 0;
     long r_bump_ButtonDebounce = 0;
     long l_bump_ButtonDebounce = 0;
+    long yButtonDebounce = 0;
     int encoder_location = 0;
     double en_power=0;
 
@@ -131,25 +133,26 @@ public class WaldonTeleOp extends LinearOpMode {
             WaldonAprilTag();
             Launch();
             Park();
-            spindexer.setPower((gamepad2.right_trigger - gamepad2.left_trigger)*.1);
-            telemetryAprilTag();
-            List<Action> newActions = new ArrayList<>();
-            //dash.sendTelemetryPacket(packet);
-            telemetry.addData("Mag Sensor: ", hopper.magSensor.getState());
-            telemetry.update();
 
-            TelemetryPacket packet = new TelemetryPacket();
-
-            List<Action> newAction = new ArrayList<>();
-            for (Action action : runningActions) {
-                action.preview(packet.fieldOverlay());
-                if(action.run(packet)){
-                    newAction.add(action);
-                }
+            if(!spinSpindexer && (System.currentTimeMillis() - yButtonDebounce > 300)){
+                //manually spin the spindexer but only if not being told to do so by the bumper button
+                spindexer.setPower((gamepad2.right_trigger - gamepad2.left_trigger)*.25);
+                spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
-            runningActions = newAction;
 
-            dash.sendTelemetryPacket(packet);
+            telemetryAprilTag();
+
+            //TelemetryPacket packet = new TelemetryPacket();
+            //List<Action> newAction = new ArrayList<>();
+            //for (Action action : runningActions) {
+            //    action.preview(packet.fieldOverlay());
+            //    if(action.run(packet)){
+            //        newAction.add(action);
+            //    }
+            // }
+            //runningActions = newAction;
+
+            //dash.sendTelemetryPacket(packet);
         }
         visionPortal.close();
 
@@ -174,6 +177,10 @@ public class WaldonTeleOp extends LinearOpMode {
 
         if (gamepad2.left_bumper && (System.currentTimeMillis() - l_bump_ButtonDebounce > 500)) {
             l_bump_ButtonDebounce = System.currentTimeMillis();
+            //spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            //intakeSpindexer = true;
+
             double hue = getBallHue();
             if (hue >= 90 && hue <= 150) {
                 telemetry.addData("Ball Color", "Green Detected (Hue: %.2f)", hue);
@@ -188,22 +195,7 @@ public class WaldonTeleOp extends LinearOpMode {
             r_bump_ButtonDebounce = System.currentTimeMillis();
             spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-            // This is the method that we were trying on Thursday but it wasn't working, potentially
-            // because there is no hold-off on the button press and it would restart multiple times
             spinSpindexer=true;
-
-            // This is what I 'thought' we should be doing, based on the documentation in the Road
-            // Runner docs site. It adds the action to a queue but I think there's a problem with
-            // removing it from the queue and that's the problem. It would run and then restart again.
-            // Possibly if I remove the "STOP_AND_RESET_ENCODER" in the spinToSenosr method, it
-            // would stop but then I think it's still added to the queue
-            //runningActions.add(new SequentialAction(DigActions.Hopper.spinToSensor()));
-
-
-            // This is what I would do if I wanted to block all other actions from happening. The
-            // code works, but it's blocking other things from going on, so not what we want.
-            //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
-
 
             double hue = getBallHue();
             if (hue >= 270 && hue <= 300) {
@@ -215,14 +207,28 @@ public class WaldonTeleOp extends LinearOpMode {
             telemetry.update();
         }
 
-        if (spinSpindexer){
+        if(intakeSpindexer){
             encoder_location = spin_encoder.getCurrentPosition();
-            en_power = (3000 - encoder_location)*.00015;
-            if(en_power < 0.1){en_power = 0.1;}
+            en_power = (1500 - encoder_location)*.00015;
+            if(en_power < 0.075){en_power = 0.075;}
 
             spindexer.setPower(en_power);
 
-            if (encoder_location > 2620) { //2731
+            if (encoder_location > 1320) { // 2675 is too far, 2620 2731
+                intakeSpindexer = false;
+                spindexer.setPower(0);
+                spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            }
+        }
+
+        if (spinSpindexer){
+            encoder_location = spin_encoder.getCurrentPosition();
+            en_power = (3000 - encoder_location)*.00015;
+            if(en_power < 0.075){en_power = 0.075;}
+
+            spindexer.setPower(en_power);
+
+            if (encoder_location > 2640) { // 2675 is too far, 2620 2731
                 spinSpindexer = false;
                 spindexer.setPower(0);
                 spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -239,18 +245,28 @@ public class WaldonTeleOp extends LinearOpMode {
         int myColor = colorSensor.getNormalizedColors().toColor();
         double hue = JavaUtil.rgbToHue(Color.red(myColor), Color.green(myColor), Color.blue(myColor));
         telemetry.addData("RGB", "R: %d, G: %d, B: %d", red, green, blue);
+        telemetry.update();
         return hue;
     }
 
     private void Launch() {
+        if(flywheel){
+            //double targetFlywheelSpeed = (Math.pow(redDistance+blueDistance,3) * -0.0039) + (Math.pow(redDistance+blueDistance,2)*1.782) - ((redDistance+blueDistance)*92.01) + 5162.5;
+            //double targetFlywheelSpeed = (redDistance+blueDistance)*25+1250;
 
+            double targetFlywheelSpeed = 0.3448*(redDistance+blueDistance)*(redDistance+blueDistance) - 41.693*(redDistance+blueDistance) + 4400;
+            if (targetFlywheelSpeed>3700){targetFlywheelSpeed=3700;}
+
+            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
+        }
 
         if (gamepad2.x && !flywheel && (System.currentTimeMillis() - xButtonDebounce > 500)) {
             xButtonDebounce = System.currentTimeMillis();
             flywheel = true;
             // calculate the speed of the flywheel based on how far away we are
-            double targetFlywheelSpeed = ((redDistance+blueDistance) * 25.0) + 1250;
-            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
+            //double targetFlywheelSpeed = (redDistance+blueDistance)*25+1250;
+            //double targetFlywheelSpeed = (Math.pow(redDistance+blueDistance,3) * -0.0039) + (Math.pow(redDistance+blueDistance,2)*1.782) - ((redDistance+blueDistance)*92.01) + 5162.5;
+            //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
         }
         if (gamepad2.x && flywheel && (System.currentTimeMillis() - xButtonDebounce > 500)) {
             xButtonDebounce = System.currentTimeMillis();
@@ -258,7 +274,20 @@ public class WaldonTeleOp extends LinearOpMode {
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
         }
         if (gamepad2.y) {
+            yButtonDebounce = System.currentTimeMillis();
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
+        }
+
+        if(gamepad2.guide){
+            //Launch all three in a sequence:
+            Actions.runBlocking(new SequentialAction(
+                    DigActions.Launcher.pullTrigger(),
+                    DigActions.Hopper.spinToSensor(),
+                    DigActions.Launcher.pullTrigger(),
+                    DigActions.Hopper.spinToSensor(),
+                    DigActions.Launcher.pullTrigger()
+                )
+            );
         }
     }
 
@@ -420,18 +449,19 @@ public class WaldonTeleOp extends LinearOpMode {
             if (detection.metadata != null) {
                 telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
                 telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                //telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
+                //telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
             } else {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
             }
         }   // end for() loop
+        telemetry.update();
 
         // Add "key" information to telemetry
-        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
-        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
-        telemetry.addLine("RBE = Range, Bearing & Elevation");
+        // telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
+        // telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
+        // telemetry.addLine("RBE = Range, Bearing & Elevation");
 
     }   // end method telemetryAprilTag()
 

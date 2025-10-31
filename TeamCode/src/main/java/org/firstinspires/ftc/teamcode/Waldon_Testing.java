@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.acmerobotics.dashboard.config.Config;
@@ -57,10 +58,13 @@ import java.util.List;
 //@Disabled
 public class Waldon_Testing extends LinearOpMode {
 
-    public static int A_speed = 6000;
-    public static int B_speed = 5000;
-    public static int X_speed = 4000;
-    public static int Y_speed = 3000;
+    public static int A_speed = 4000;
+    public static int X_speed = 3000;
+
+    public static double P = 10.0; // Proportional
+    public static double I = 3.0; // Integral
+    public static double D = 0.0; // Derivitave
+    public static double F = 0.00215; // Konstant
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -94,22 +98,31 @@ public class Waldon_Testing extends LinearOpMode {
                 Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(A_speed)));
             }
             if(gamepad1.b) {
-                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
-                // Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(B_speed)));
+                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
+                flywheel.setPower(0);
             }
             if(gamepad1.x) {
-                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(X_speed)));
+                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(X_speed)));
             }
             if(gamepad1.y) {
-                Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
-                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(Y_speed)));
+                //Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
+                flywheel.setVelocityPIDFCoefficients(P, I, D, F);
+                flywheel.setVelocity(3500*28/60);
             }
-            if(gamepad1.guide) {
-                Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
+            if(gamepad1.right_bumper){
+                flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                flywheel.setPower(1);
+            }
+            if(gamepad1.left_bumper){
+                flywheel.setPower(0);
+                flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
 
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("RPM: ", flywheel.getVelocity()*60/28);
+            PIDFCoefficients coefficients = new PIDFCoefficients(flywheel.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));;
+
+
+            telemetry.addData("PIDF",coefficients);
+            telemetry.addData("RPM", flywheel.getVelocity()*60/28);
             telemetry.update();
         }
     }
