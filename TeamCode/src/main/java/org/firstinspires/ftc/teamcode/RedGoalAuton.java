@@ -21,8 +21,9 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
-@Autonomous(name="Red Goal Auton")
+@Autonomous(name="Red Goal Auton", preselectTeleOp = "WaldonTeleOp")
 @Config
+
 public class RedGoalAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -33,6 +34,7 @@ public class RedGoalAuton extends LinearOpMode {
         Pose2d parkPose = new Pose2d(-60,24,Math.toRadians(180));
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
+        drive.localizer.setPose(beginPose);
 
         Action all_drives = drive.actionBuilder(beginPose)
                 .setTangent(Math.toRadians(-35))

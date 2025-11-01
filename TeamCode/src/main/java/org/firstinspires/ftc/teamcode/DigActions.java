@@ -146,7 +146,6 @@ public class DigActions {
                 return false;
             }
         }
-
         public static Action intakeOn() {
             return new IntakeOn();
         }
@@ -158,7 +157,6 @@ public class DigActions {
                 return false;
             }
         }
-
         public static Action intakeOff() {
             return new IntakeOff();
         }
@@ -170,7 +168,6 @@ public class DigActions {
                 return false;
             }
         }
-
         public static Action spitOut() {
             return new SpitOut();
         }
@@ -188,6 +185,7 @@ public class DigActions {
             spin_encoder = hardwareMap.get(DcMotor.class, "spin_encoder");
 
         }
+
         public static class SpinToSensor implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -198,7 +196,7 @@ public class DigActions {
                 packet.put("encoder power",en_power);
                 spin.setPower(en_power);
 
-                if (encoder_location < 2640) { //2731
+                if (encoder_location < 2650) { //2731
                     return true;
                 } else {
                     spin.setPower(0);
@@ -210,10 +208,14 @@ public class DigActions {
         public static Action spinToSensor(){
             return new SpinToSensor();
         }
+
         public static class MotorTurn implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 spin.setPower(1);
+                if(spin_encoder.getCurrentPosition() > 2600){
+                    spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                }
                 return false;
             }
         }
@@ -232,7 +234,6 @@ public class DigActions {
             return new MotorOff();
         }
 
-
         public static class IdentifyBall implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -243,6 +244,7 @@ public class DigActions {
         public static Action identifyBall() {
             return new IdentifyBall();
         }
+
         public static class IdentifyOrder implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -252,6 +254,7 @@ public class DigActions {
         public static Action identifyOrder() {
             return new IdentifyOrder();
         }
+
         public static class Sequencing implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {

@@ -19,6 +19,7 @@ public class OTOSLocalizer implements Localizer {
         public double linearScalar = 1.006;
 
         // Note: units are in inches and radians
+        //public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(1.5, -1, 0);
         public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(1.5, -1, 3.0981);
     }
 

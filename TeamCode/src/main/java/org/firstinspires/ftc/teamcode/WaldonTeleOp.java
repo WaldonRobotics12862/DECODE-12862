@@ -134,7 +134,7 @@ public class WaldonTeleOp extends LinearOpMode {
             Launch();
             Park();
 
-            if(!spinSpindexer && (System.currentTimeMillis() - yButtonDebounce > 300)){
+            if(!spinSpindexer) {// && (System.currentTimeMillis() - yButtonDebounce > 300)){
                 //manually spin the spindexer but only if not being told to do so by the bumper button
                 spindexer.setPower((gamepad2.right_trigger - gamepad2.left_trigger)*.25);
                 spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -426,7 +426,7 @@ public class WaldonTeleOp extends LinearOpMode {
                 blueDistance = detection.ftcPose.y;
                 redDistance = 0;
 
-            } else if(detection.id == 21) {
+            } else if(detection.id == 24) {
                 //this is a red goal
                 goalDetected = 2; // use this for the Red Goal
                 redDistance = detection.ftcPose.y;
@@ -434,7 +434,6 @@ public class WaldonTeleOp extends LinearOpMode {
             }
             else {
                 //don't care
-                goalDetected = 0;
             }
         }
     }

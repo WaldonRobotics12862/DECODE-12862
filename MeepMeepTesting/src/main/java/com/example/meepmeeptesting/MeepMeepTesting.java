@@ -15,17 +15,21 @@ public class MeepMeepTesting {
                 .setConstraints(50, 50, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, -12, Math.toRadians(0)))  // Blue audience start: facing toward the field (positive y)
-                .splineToLinearHeading(new Pose2d(2, -12, Math.toRadians(-20)),0)
-                .splineToLinearHeading(new Pose2d(24,-24,Math.toRadians(-90)),0)
-                //.splineToLinearHeading(new Pose2d(58,-12,0),180)
-                //.turn(Math.toRadians(20))
-                //.waitSeconds(1)  // Simulate dropping pixel (comment out hardware code)
-                //.splineTo(new Vector2d(36, -32), Math.toRadians(-90))
-                //.lineToY(-50)
-                //.setTangent(90)
-                //.splineToLinearHeading(new Pose2d(58,-12,Math.toRadians(200)),Math.toRadians(0))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-49
+                        , 49, Math.toRadians(125)))
+                .waitSeconds(2)
+                .lineToX(-24)
+                .waitSeconds(2.5)
+                .setTangent(Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(-12,24,Math.toRadians(90)),Math.toRadians(90))
+                .lineToY(48)
+                .setTangent(Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(-24, 24,Math.toRadians(135)),Math.toRadians(90))
+                .waitSeconds(2.5)
+                .splineToLinearHeading(new Pose2d(-60,24,Math.toRadians(180)),Math.toRadians(180))
+                //.lineToX(-24)
                 .build());
+
 
         //myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-49, -49, Math.toRadians(55))) // Start pose: Y negated, heading = 180° - 125° = 55°
         //        .waitSeconds(2)

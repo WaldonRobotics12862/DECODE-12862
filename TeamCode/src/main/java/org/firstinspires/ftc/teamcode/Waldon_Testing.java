@@ -35,8 +35,11 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -67,16 +70,30 @@ public class Waldon_Testing extends LinearOpMode {
     public static double F = 0.00215; // Konstant
 
     // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
+    private final ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx flywheel = null;
+    private DcMotorEx spinEncoder = null;
+    private CRServo spindexer = null;
+    private DigitalChannel mag = null;
+
+    private static final int NUM_PIXELS = 16;
 
     @Override
     public void runOpMode() {
+
+        DigActions.Hopper hopper = new DigActions.Hopper(hardwareMap);
+        DigActions.Launcher launcher = new DigActions.Launcher(hardwareMap);
+
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
+        spindexer = hardwareMap.get(CRServo.class, "spin");
+        mag = hardwareMap.get(DigitalChannel.class,"mag");
 
+        spinEncoder = hardwareMap.get(DcMotorEx.class,"spin_encoder");
+        spinEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel.setDirection(DcMotorEx.Direction.REVERSE);
@@ -88,11 +105,11 @@ public class Waldon_Testing extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            //Actions.runBlocking((new SequentialAction(DigActions.Hopper.spinToSensor(),new SleepAction(2))));
+
 
             // Setup a variable for each drive wheel to save power level for telemetry
             double flywheelSpeed;
-
-            DigActions.Launcher launcher = new DigActions.Launcher(hardwareMap);
 
             if(gamepad1.a) {
                 Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(A_speed)));
@@ -118,11 +135,12 @@ public class Waldon_Testing extends LinearOpMode {
                 flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
 
-            PIDFCoefficients coefficients = new PIDFCoefficients(flywheel.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));;
+            PIDFCoefficients coefficients = new PIDFCoefficients(flywheel.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
 
-
-            telemetry.addData("PIDF",coefficients);
-            telemetry.addData("RPM", flywheel.getVelocity()*60/28);
+            telemetry.addData("Magnetic Sensor",mag.getState());
+            telemetry.addData("Encoder Count", spinEncoder.getCurrentPosition());
+            //telemetry.addData("PIDF",coefficients);
+            //telemetry.addData("RPM", flywheel.getVelocity()*60/28);
             telemetry.update();
         }
     }
