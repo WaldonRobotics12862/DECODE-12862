@@ -53,7 +53,7 @@ public class BlueAudienceAuton extends LinearOpMode {
 
 
         Pose2d beginPose = new Pose2d(62,-12,Math.toRadians(180));
-        Pose2d launchPose = new Pose2d(58,-12,Math.toRadians(200));
+        Pose2d launchPose = new Pose2d(58,-12,Math.toRadians(201));
 
         initAprilTag();
 
@@ -93,7 +93,7 @@ public class BlueAudienceAuton extends LinearOpMode {
         Actions.runBlocking(
                 new SequentialAction(
                         inital_move,
-                        new DigActions.Launcher.MotorOn(3700),
+                        new DigActions.Launcher.MotorOn(3600),
                         new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
                         //new DigActions.Launcher.MotorOff(),
@@ -120,7 +120,7 @@ public class BlueAudienceAuton extends LinearOpMode {
                         ),
                         new DigActions.Intake.IntakeOff(),
                         new DigActions.Hopper.MotorOff(),
-                        new DigActions.Launcher.MotorOn(3700),
+                        new DigActions.Launcher.MotorOn(3600),
                         new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
                         //new DigActions.Launcher.MotorOff(),
