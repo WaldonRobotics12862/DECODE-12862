@@ -51,8 +51,8 @@ public class DigActions {
                 double vel = flywheelmotor.getVelocity() * 60.0 / 28.0;
                 packet.put("Target rpm: ", rpm);
                 packet.put("shooterVelocity", vel);
-                //return vel < rpm * 0.95;
-                return false;
+                return vel < (rpm * 0.95);
+                //return false;
             }
         }
         public static Action motorOn(double rpm) {
@@ -187,16 +187,25 @@ public class DigActions {
         }
 
         public static class SpinToSensor implements Action {
+            private long startTime = 0; // New: Variable to store the start time
+            private boolean initialized = false; // New: Flag to check if we've started
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                // New: Initialize the timer on the first run
+                if (!initialized) {
+                    startTime = System.currentTimeMillis();
+                    initialized = true;
+                }
                 int encoder_location = spin_encoder.getCurrentPosition();
 
                 double en_power = (3000 - encoder_location)*.00015;
                 if(en_power < 0.075){en_power = 0.075;}
-                packet.put("encoder power",en_power);
                 spin.setPower(en_power);
 
-                if (encoder_location < 2650) { //2731
+                double elapsedTime = (System.currentTimeMillis() - startTime); // Convert nanoseconds to seconds
+
+                if (encoder_location < 2685 && elapsedTime < 1500) { //I started 11/7 at 2650. 2731
                     return true;
                 } else {
                     spin.setPower(0);

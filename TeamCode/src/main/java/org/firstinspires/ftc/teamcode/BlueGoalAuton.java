@@ -116,7 +116,16 @@ public class BlueGoalAuton extends LinearOpMode {
                         new DigActions.Launcher.MotorOff(),
                         new DigActions.Intake.IntakeOn(),
 
-                        drive_to_intake_1,
+                        new ParallelAction(
+                                drive_to_intake_1,
+                                new SequentialAction(
+                                        new SleepAction(0.5),
+                                        new DigActions.Hopper.SpinToSensor(),
+                                        new DigActions.Hopper.SpinToSensor(),
+                                        new DigActions.Hopper.SpinToSensor(),
+                                        new DigActions.Hopper.SpinToSensor()
+                                )
+                        ),
                         new DigActions.Intake.IntakeOff(),
                         new DigActions.Launcher.MotorOn(3000),
                         new SleepAction(2), // let the motor get up to speed
@@ -165,16 +174,22 @@ public class BlueGoalAuton extends LinearOpMode {
             if(detection.id == 21) {
                 //GREEN PURPLE PURPLE
                 // No Rotation
+                telemetry.addLine("GREEN purple purple");
+                telemetry.update();
                 OBELISK = 0;
 
             } else if(detection.id == 22) {
                 //PURPLE GREEN PURPLE
                 // Rotate 2 or better yet, rotate backwards if we can
+                telemetry.addLine("purple GREEN purple");
+                telemetry.update();
                 OBELISK = 2;
             }
             else if(detection.id == 23)  {
                 //PURPLE PURPLE GREEN
                 // Rotate 1
+                telemetry.addLine("purple purple GREEN");
+                telemetry.update();
                 OBELISK = 1;
             }
         }

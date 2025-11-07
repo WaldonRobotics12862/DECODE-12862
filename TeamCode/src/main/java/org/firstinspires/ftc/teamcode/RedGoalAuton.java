@@ -117,7 +117,15 @@ public class RedGoalAuton extends LinearOpMode {
                         new DigActions.Launcher.MotorOff(),
                         new DigActions.Intake.IntakeOn(),
 
-                        drive_to_intake_1,
+                        new ParallelAction(
+                                drive_to_intake_1,
+                                new SequentialAction(
+                                        new DigActions.Hopper.SpinToSensor(),
+                                        new DigActions.Hopper.SpinToSensor(),
+                                        new DigActions.Hopper.SpinToSensor(),
+                                        new DigActions.Hopper.SpinToSensor()
+                                )
+                        ),
                         new DigActions.Intake.IntakeOff(),
                         new DigActions.Launcher.MotorOn(3000),
                         new SleepAction(2), // let the motor get up to speed

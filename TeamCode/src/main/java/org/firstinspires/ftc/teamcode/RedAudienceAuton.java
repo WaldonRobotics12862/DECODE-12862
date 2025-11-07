@@ -67,7 +67,7 @@ public class RedAudienceAuton extends LinearOpMode {
         Action intake_artifact = drive.actionBuilder(launchPose)
                 //.setTangent(200)
                 .splineTo(new Vector2d(36, 32), Math.toRadians(90))
-                .lineToY(52)
+                .lineToY(54)
                 .waitSeconds(1)
                 .setTangent(Math.toRadians(-90))
                 .splineToLinearHeading(new Pose2d(58,18,Math.toRadians(160)), Math.toRadians(-20))

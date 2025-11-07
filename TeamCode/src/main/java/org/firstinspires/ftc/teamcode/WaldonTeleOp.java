@@ -55,6 +55,7 @@ public class WaldonTeleOp extends LinearOpMode {
     long yButtonDebounce = 0;
     int encoder_location = 0;
     double en_power=0;
+    double spindexerStartTime = 0;
 
     //DcMotorEx spin_encoder = hardwareMap.get(DcMotorEx.class, "spin_encoder");
 
@@ -196,6 +197,8 @@ public class WaldonTeleOp extends LinearOpMode {
             spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
             spinSpindexer=true;
+            spindexerStartTime = System.currentTimeMillis();
+            //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
 
             double hue = getBallHue();
             if (hue >= 270 && hue <= 300) {
@@ -227,8 +230,9 @@ public class WaldonTeleOp extends LinearOpMode {
             if(en_power < 0.075){en_power = 0.075;}
 
             spindexer.setPower(en_power);
+            double elapsedTime = (System.currentTimeMillis() - spindexerStartTime);
 
-            if (encoder_location > 2640) { // 2675 is too far, 2620 2731
+            if (encoder_location > 2640 && elapsedTime < 1500) { // 2675 is too far, 2620 2731
                 spinSpindexer = false;
                 spindexer.setPower(0);
                 spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -251,22 +255,14 @@ public class WaldonTeleOp extends LinearOpMode {
 
     private void Launch() {
         if(flywheel){
-            //double targetFlywheelSpeed = (Math.pow(redDistance+blueDistance,3) * -0.0039) + (Math.pow(redDistance+blueDistance,2)*1.782) - ((redDistance+blueDistance)*92.01) + 5162.5;
-            //double targetFlywheelSpeed = (redDistance+blueDistance)*25+1250;
-
             double targetFlywheelSpeed = 0.3448*(redDistance+blueDistance)*(redDistance+blueDistance) - 41.693*(redDistance+blueDistance) + 4400;
             if (targetFlywheelSpeed>3700){targetFlywheelSpeed=3700;}
-
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
         }
 
         if (gamepad2.x && !flywheel && (System.currentTimeMillis() - xButtonDebounce > 500)) {
             xButtonDebounce = System.currentTimeMillis();
             flywheel = true;
-            // calculate the speed of the flywheel based on how far away we are
-            //double targetFlywheelSpeed = (redDistance+blueDistance)*25+1250;
-            //double targetFlywheelSpeed = (Math.pow(redDistance+blueDistance,3) * -0.0039) + (Math.pow(redDistance+blueDistance,2)*1.782) - ((redDistance+blueDistance)*92.01) + 5162.5;
-            //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
         }
         if (gamepad2.x && flywheel && (System.currentTimeMillis() - xButtonDebounce > 500)) {
             xButtonDebounce = System.currentTimeMillis();
@@ -277,11 +273,10 @@ public class WaldonTeleOp extends LinearOpMode {
             yButtonDebounce = System.currentTimeMillis();
             Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
         }
-
         if(gamepad2.guide){
             //Launch all three in a sequence:
             Actions.runBlocking(new SequentialAction(
-                    DigActions.Launcher.pullTrigger(),
+                    //DigActions.Launcher.pullTrigger(),
                     DigActions.Hopper.spinToSensor(),
                     DigActions.Launcher.pullTrigger(),
                     DigActions.Hopper.spinToSensor(),
