@@ -49,8 +49,8 @@ public class DigActions {
                     initialized = true;
                 }
                 double vel = flywheelmotor.getVelocity() * 60.0 / 28.0;
-                packet.put("Target rpm: ", rpm);
-                packet.put("shooterVelocity", vel);
+                //packet.put("Target rpm: ", rpm);
+                //packet.put("shooterVelocity", vel);
                 return vel < (rpm * 0.95);
                 //return false;
             }
@@ -133,16 +133,19 @@ public class DigActions {
 
     public static class Intake {
         private static DcMotorEx intake;
+        private static CRServo spin;
 
         public Intake(HardwareMap hardwareMap) {
             // 1 Motor, 2 Direction
             intake = hardwareMap.get(DcMotorEx.class, "intake");
+            spin = hardwareMap.get(CRServo.class, "spin");
         }
 
         public static class IntakeOn implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 intake.setPower(1);
+                //spin.setPower(0.25);
                 return false;
             }
         }
@@ -154,6 +157,7 @@ public class DigActions {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 intake.setPower(0);
+                //spin.setPower(0);
                 return false;
             }
         }
@@ -177,6 +181,9 @@ public class DigActions {
         static DigitalChannel magSensor;
         private static CRServo spin;
         private static DcMotor spin_encoder;
+        private static DcMotorEx intake;
+
+
 
         public Hopper(HardwareMap hardwareMap) {
             // Hopper initialization, e.g., configuring motors or sensors
@@ -199,19 +206,22 @@ public class DigActions {
                 }
                 int encoder_location = spin_encoder.getCurrentPosition();
 
-                double en_power = (3000 - encoder_location)*.00015;
-                if(en_power < 0.075){en_power = 0.075;}
+                double en_power = 0.3 - (encoder_location * 0.0003);
+                if (en_power < 0.09) {
+                    en_power = 0.09;
+                }
                 spin.setPower(en_power);
 
-                double elapsedTime = (System.currentTimeMillis() - startTime); // Convert nanoseconds to seconds
+                double TargetLocation = 2200;
 
-                if (encoder_location < 2685 && elapsedTime < 1500) { //I started 11/7 at 2650. 2731
-                    return true;
-                } else {
+                if((encoder_location > TargetLocation && !magSensor.getState()) || System.currentTimeMillis() - startTime > 2000) {
                     spin.setPower(0);
                     spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     return false;
+                } else {
+                    return true;
                 }
+
             }
         }
         public static Action spinToSensor(){
@@ -221,7 +231,8 @@ public class DigActions {
         public static class MotorTurn implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                spin.setPower(1);
+                spin.setPower(0.75);
+
                 if(spin_encoder.getCurrentPosition() > 2600){
                     spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 }

@@ -79,6 +79,9 @@ public class BlueAudienceAuton extends LinearOpMode {
 
         spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        /**
+         * Auton START
+         */
         waitForStart();
         AutonDetection();
 
@@ -94,21 +97,14 @@ public class BlueAudienceAuton extends LinearOpMode {
                 new SequentialAction(
                         inital_move,
                         new DigActions.Launcher.MotorOn(3600),
-                        new SleepAction(2), // let the motor get up to speed
+                        new SleepAction(1), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        //new DigActions.Launcher.MotorOff(),
                         new DigActions.Hopper.SpinToSensor(),
-                        //new DigActions.Launcher.MotorOn(3700),
-                        //new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        //new DigActions.Launcher.MotorOff(),
                         new DigActions.Hopper.SpinToSensor(),
-                        //new DigActions.Launcher.MotorOn(3700),
-                        //new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Launcher.MotorOff(),
+                        new DigActions.Launcher.MotorOn(1500), // slow down to 50% to save battery
                         new DigActions.Intake.IntakeOn(),
-                        //new DigActions.Hopper.MotorTurn(),
                         new ParallelAction(
                                 intake_artifact,
                                 new SequentialAction(
@@ -121,17 +117,11 @@ public class BlueAudienceAuton extends LinearOpMode {
                         new DigActions.Intake.IntakeOff(),
                         new DigActions.Hopper.MotorOff(),
                         new DigActions.Launcher.MotorOn(3600),
-                        new SleepAction(2), // let the motor get up to speed
-                        new DigActions.Launcher.PullTrigger(),
-                        //new DigActions.Launcher.MotorOff(),
                         new DigActions.Hopper.SpinToSensor(),
-                        //new DigActions.Launcher.MotorOn(3700),
-                        //new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        //new DigActions.Launcher.MotorOff(),
                         new DigActions.Hopper.SpinToSensor(),
-                        //new DigActions.Launcher.MotorOn(3700),
-                        //new SleepAction(2), // let the motor get up to speed
+                       new DigActions.Launcher.PullTrigger(),
+                        new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
                         new DigActions.Launcher.MotorOff(),
                         park
@@ -139,6 +129,7 @@ public class BlueAudienceAuton extends LinearOpMode {
                 )
         );
     }
+
     private void initAprilTag() {
         // Create the AprilTag processor.
         aprilTag = new AprilTagProcessor.Builder().build();

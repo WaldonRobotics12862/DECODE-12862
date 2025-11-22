@@ -76,6 +76,9 @@ public class Waldon_Testing extends LinearOpMode {
     private CRServo spindexer = null;
     private DigitalChannel mag = null;
 
+    private DigitalChannel eye1 = null;
+    private DigitalChannel eye2 = null;
+
     private static final int NUM_PIXELS = 16;
 
     @Override
@@ -91,6 +94,10 @@ public class Waldon_Testing extends LinearOpMode {
         spindexer = hardwareMap.get(CRServo.class, "spin");
         mag = hardwareMap.get(DigitalChannel.class,"mag");
 
+        eye1 = hardwareMap.get(DigitalChannel.class, "eye1");
+        eye2 = hardwareMap.get(DigitalChannel.class, "eye3");
+
+
         spinEncoder = hardwareMap.get(DcMotorEx.class,"spin_encoder");
         spinEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -98,6 +105,12 @@ public class Waldon_Testing extends LinearOpMode {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel.setDirection(DcMotorEx.Direction.REVERSE);
         flywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        eye1.setMode(DigitalChannel.Mode.OUTPUT);
+        eye2.setMode(DigitalChannel.Mode.OUTPUT);
+
+        eye1.setState(true);
+        eye2.setState(true);
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -110,6 +123,13 @@ public class Waldon_Testing extends LinearOpMode {
 
             // Setup a variable for each drive wheel to save power level for telemetry
             double flywheelSpeed;
+
+            if(gamepad2.a){
+                eye1.setState(!eye1.getState());
+            }
+            if(gamepad2.b){
+                eye2.setState(!eye2.getState());
+            }
 
             if(gamepad1.a) {
                 Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(A_speed)));

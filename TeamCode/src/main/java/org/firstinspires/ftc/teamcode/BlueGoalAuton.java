@@ -53,7 +53,7 @@ public class BlueGoalAuton extends LinearOpMode {
         Pose2d beginPose = new Pose2d(-49, -49, Math.toRadians(-125));
         Pose2d obeliskPose = new Pose2d(-26,-26,Math.toRadians(-210));
         Pose2d launchPose = new Pose2d(-24, -24, Math.toRadians(-135));
-        Pose2d parkPose = new Pose2d(-33, -10, Math.toRadians(-180));
+        Pose2d parkPose = new Pose2d(-48, -12, Math.toRadians(-180));
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         drive.localizer.setPose(beginPose);
@@ -72,7 +72,7 @@ public class BlueGoalAuton extends LinearOpMode {
 
         Action drive_to_intake_1 = drive.actionBuilder(launchPose)
                 .setTangent(Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(-12, -20, Math.toRadians(-90)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-8, -20, Math.toRadians(-90)), Math.toRadians(90))
                 .lineToY(-50)
                 .setTangent(Math.toRadians(-270))
                 .splineToLinearHeading(launchPose, Math.toRadians(-90))
@@ -82,44 +82,44 @@ public class BlueGoalAuton extends LinearOpMode {
                 .splineToLinearHeading(parkPose, Math.toRadians(-180))
                 .build();
 
+        /**
+         * Auton START
+         */
 
         waitForStart();
+        spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         Actions.runBlocking(
                 new SequentialAction(
                         drive_to_launch_1
                 )
         );
-
         AutonDetection();
-
-        spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
+        Actions.runBlocking(
+                new SequentialAction(
+                        new DigActions.Launcher.MotorOn(3000),
+                        AprilTagSpin
+                )
+        );
         if(OBELISK == 1){
             Actions.runBlocking(DigActions.Hopper.spinToSensor());
         } else if (OBELISK == 2){
             Actions.runBlocking(DigActions.Hopper.spinToSensor());
             Actions.runBlocking(DigActions.Hopper.spinToSensor());
         }
-
         Actions.runBlocking(
                 new SequentialAction(
-                        AprilTagSpin,
-                        //spin back
-                        new DigActions.Launcher.MotorOn(3000),
-                        new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
                         new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
                         new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Launcher.MotorOff(),
+                        new DigActions.Launcher.MotorOn(1500),
                         new DigActions.Intake.IntakeOn(),
 
                         new ParallelAction(
                                 drive_to_intake_1,
                                 new SequentialAction(
-                                        new SleepAction(0.5),
                                         new DigActions.Hopper.SpinToSensor(),
                                         new DigActions.Hopper.SpinToSensor(),
                                         new DigActions.Hopper.SpinToSensor(),
@@ -128,7 +128,7 @@ public class BlueGoalAuton extends LinearOpMode {
                         ),
                         new DigActions.Intake.IntakeOff(),
                         new DigActions.Launcher.MotorOn(3000),
-                        new SleepAction(2), // let the motor get up to speed
+                        new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
                         new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
@@ -137,14 +137,6 @@ public class BlueGoalAuton extends LinearOpMode {
                         new DigActions.Launcher.MotorOff(),
 
                         park
-                        //new SleepAction(1000),
-                        //launch three artifacts
-                        //new ParallelAction(drive_to_intake_1,DigActions.Intake.intakeOn()),
-                        //drive_to_launch_2,
-                        //launch three artifacts
-                        //park
-
-                        //all_drives
                 )
         );
     }

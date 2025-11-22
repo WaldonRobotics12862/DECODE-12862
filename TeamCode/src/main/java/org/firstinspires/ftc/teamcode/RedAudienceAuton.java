@@ -79,11 +79,13 @@ public class RedAudienceAuton extends LinearOpMode {
 
         spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        /**
+         * Auton START
+         */
         waitForStart();
         AutonDetection();
 
         spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
         if(OBELISK == 1){
             Actions.runBlocking(DigActions.Hopper.spinToSensor());
         } else if (OBELISK == 2){
@@ -95,21 +97,14 @@ public class RedAudienceAuton extends LinearOpMode {
                 new SequentialAction(
                         inital_move,
                         new DigActions.Launcher.MotorOn(3600),
-                        new SleepAction(2), // let the motor get up to speed
+                        new SleepAction(1), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        //new DigActions.Launcher.MotorOff(),
                         new DigActions.Hopper.SpinToSensor(),
-                        //new DigActions.Launcher.MotorOn(3700),
-                        //new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        //new DigActions.Launcher.MotorOff(),
                         new DigActions.Hopper.SpinToSensor(),
-                        //new DigActions.Launcher.MotorOn(3700),
-                        //new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Launcher.MotorOff(),
+                        new DigActions.Launcher.MotorOn(1500), // slow down to 50% to save battery
                         new DigActions.Intake.IntakeOn(),
-                        //new DigActions.Hopper.MotorTurn(),
                         new ParallelAction(
                                 intake_artifact,
                                 new SequentialAction(
@@ -122,17 +117,11 @@ public class RedAudienceAuton extends LinearOpMode {
                         new DigActions.Intake.IntakeOff(),
                         new DigActions.Hopper.MotorOff(),
                         new DigActions.Launcher.MotorOn(3600),
-                        new SleepAction(2), // let the motor get up to speed
-                        new DigActions.Launcher.PullTrigger(),
-                        //new DigActions.Launcher.MotorOff(),
                         new DigActions.Hopper.SpinToSensor(),
-                        //new DigActions.Launcher.MotorOn(3700),
-                        //new SleepAction(2), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        //new DigActions.Launcher.MotorOff(),
                         new DigActions.Hopper.SpinToSensor(),
-                        //new DigActions.Launcher.MotorOn(3700),
-                        //new SleepAction(2), // let the motor get up to speed
+                        new DigActions.Launcher.PullTrigger(),
+                        new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
                         new DigActions.Launcher.MotorOff(),
                         park

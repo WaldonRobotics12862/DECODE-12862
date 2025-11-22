@@ -10,6 +10,12 @@
 
             <RevColorSensorV3 name="colorSensor" port="0" bus="1" />
 
+            <DigitalDevice name="mag" port="1" />
+            <DigitalDevice name="eye1" port="2"/>
+            <DigitalDevice name="eye2" port="3"/>
+            <DigitalDevice name="eye3" port="4"/>
+            <DigitalDevice name="eye4" port="5"/>
+
             <NeoDriver name="led" port="0" bus="3" />
         </LynxModule>
 
@@ -23,7 +29,6 @@
             <ContinuousRotationServo name="spin" port="2" />
             <ContinuousRotationServo name="turret" port="3" />
 
-            <DigitalDevice name="mag" port="1" />
             <SparkFunOTOS name="sensor_otos" port="0" bus="1" />
 
             <AndyMarkIMU name="imu" port="0" bus="2" />

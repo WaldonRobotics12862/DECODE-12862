@@ -6,8 +6,10 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
@@ -46,6 +48,8 @@ public class WaldonTeleOp extends LinearOpMode {
     double slow_mode = 1.0;
     double redDistance = 0;
     double blueDistance = 0;
+    double redAlign = 0;
+    double blueAlign = 0;
     int goalDetected = 0;
     boolean spinSpindexer = false;
     boolean intakeSpindexer=false;
@@ -55,7 +59,11 @@ public class WaldonTeleOp extends LinearOpMode {
     long yButtonDebounce = 0;
     int encoder_location = 0;
     double en_power=0;
-    double spindexerStartTime = 0;
+    double spindexerStartTime = 1000;
+    double looptimer = 0;
+    double maxLoopTime = 0;
+    int distanceDebounce = 5;
+    double targetFlywheelSpeed = 0;
 
     //DcMotorEx spin_encoder = hardwareMap.get(DcMotorEx.class, "spin_encoder");
 
@@ -65,6 +73,10 @@ public class WaldonTeleOp extends LinearOpMode {
     private RevColorSensorV3 colorSensor;
     private FtcDashboard dash = FtcDashboard.getInstance();
     private List<Action> runningActions = new ArrayList<>();
+    public DigitalChannel magSensor;
+    private DigitalChannel eye1 = null;
+    private DigitalChannel eye2 = null;
+
     //public DcMotorEx spinEncoder;
 
     TelemetryPacket packet = null;
@@ -90,6 +102,8 @@ public class WaldonTeleOp extends LinearOpMode {
 
         initAprilTag();
 
+        DigitalChannel magSensor = hardwareMap.get(DigitalChannel.class, "mag");
+
         DcMotorEx frontLeftMotor = hardwareMap.get(DcMotorEx.class, "leftFront");
         DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, "leftBack");
         DcMotorEx frontRightMotor = hardwareMap.get(DcMotorEx.class, "rightBack");
@@ -105,6 +119,15 @@ public class WaldonTeleOp extends LinearOpMode {
 
         colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
 
+        eye1 = hardwareMap.get(DigitalChannel.class, "eye1");
+        eye2 = hardwareMap.get(DigitalChannel.class, "eye3");
+
+        eye1.setMode(DigitalChannel.Mode.OUTPUT);
+        eye2.setMode(DigitalChannel.Mode.OUTPUT);
+
+        eye1.setState(false);
+        eye2.setState(false);
+
         frontLeftMotor.setDirection(DcMotorEx.Direction.FORWARD);
         backLeftMotor.setDirection(DcMotorEx.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorEx.Direction.FORWARD);
@@ -116,7 +139,6 @@ public class WaldonTeleOp extends LinearOpMode {
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-
         CRServo spindexer = hardwareMap.get(CRServo.class, "spin");
 
         DigActions.Launcher launcher = new DigActions.Launcher(hardwareMap);
@@ -127,55 +149,61 @@ public class WaldonTeleOp extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
+        flywheel = true;
+
         while (opModeIsActive()) {
+            //looptimer = System.currentTimeMillis();
             Drive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor, imu);
             Intake();
-            Index(spinEncoder, spindexer);
+            Index(spinEncoder, spindexer, magSensor);
             WaldonAprilTag();
             Launch();
             Park();
 
-            if(!spinSpindexer) {// && (System.currentTimeMillis() - yButtonDebounce > 300)){
+            List<Action> newActions = new ArrayList<>();
+            for (Action action: runningActions) {
+                if (action.run(packet)) {
+                    newActions.add(action);
+                }
+            }
+            runningActions = newActions;
+
+            if(!spinSpindexer && (System.currentTimeMillis() - spindexerStartTime > 1000)){
                 //manually spin the spindexer but only if not being told to do so by the bumper button
                 spindexer.setPower((gamepad2.right_trigger - gamepad2.left_trigger)*.25);
                 spinEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
-
-            telemetryAprilTag();
-
-            //TelemetryPacket packet = new TelemetryPacket();
-            //List<Action> newAction = new ArrayList<>();
-            //for (Action action : runningActions) {
-            //    action.preview(packet.fieldOverlay());
-            //    if(action.run(packet)){
-            //        newAction.add(action);
-            //    }
-            // }
-            //runningActions = newAction;
-
-            //dash.sendTelemetryPacket(packet);
+//            maxLoopTime = (System.currentTimeMillis()-looptimer)*.1 + maxLoopTime*.9;
+            //telemetryAprilTag();
+            //telemetry.addData("Red Distance:", redDistance);
+            //telemetry.addData("Blue Distance",blueDistance);
+            telemetry.update();
         }
         visionPortal.close();
-
     }
 
     private void Intake() {
         if (gamepad2.dpad_up) {
             //intake = true;
-            Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOn()));
+            //spinSpindexer = true;
+            runningActions.add(DigActions.Intake.intakeOn());
+            //Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOn()));
         }
         if (gamepad2.dpad_down) {
             //intake = false;
-            Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOff()));
+            //spinSpindexer = false;
+            runningActions.add(DigActions.Intake.intakeOff());
+            //Actions.runBlocking(new SequentialAction(DigActions.Intake.intakeOff()));
         }
         if (gamepad2.dpad_left) {
-            Actions.runBlocking(new SequentialAction(DigActions.Intake.spitOut()));
+            runningActions.add(DigActions.Intake.spitOut());
+            //Actions.runBlocking(new SequentialAction(DigActions.Intake.spitOut()));
         }
 
     }
 
-    private void Index(DcMotorEx spin_encoder, CRServo spindexer) {
-
+    private void Index(DcMotorEx spin_encoder, CRServo spindexer, DigitalChannel magSensor) {
+        /** Commenting out the left bumper since we aren't using it and it wasn't actually doing anything.
         if (gamepad2.left_bumper && (System.currentTimeMillis() - l_bump_ButtonDebounce > 500)) {
             l_bump_ButtonDebounce = System.currentTimeMillis();
             //spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -183,6 +211,7 @@ public class WaldonTeleOp extends LinearOpMode {
             //intakeSpindexer = true;
 
             double hue = getBallHue();
+
             if (hue >= 90 && hue <= 150) {
                 telemetry.addData("Ball Color", "Green Detected (Hue: %.2f)", hue);
                 //Actions.runBlocking(new SequentialAction(DigActions.Hopper.acceptBall()));
@@ -191,15 +220,17 @@ public class WaldonTeleOp extends LinearOpMode {
                 //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spintoSensor()));
             }
             telemetry.update();
+
         }
-        if (gamepad2.right_bumper && (System.currentTimeMillis() - r_bump_ButtonDebounce > 500)) {
+        */
+        if (gamepad2.right_bumper && (System.currentTimeMillis() - r_bump_ButtonDebounce > 500) && System.currentTimeMillis() - spindexerStartTime > 1000) {
             r_bump_ButtonDebounce = System.currentTimeMillis();
+            spindexerStartTime = System.currentTimeMillis();
             spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-            spinSpindexer=true;
-            spindexerStartTime = System.currentTimeMillis();
-            //Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
-
+            Actions.runBlocking(new SequentialAction(DigActions.Hopper.spinToSensor()));
+            //runningActions.add(DigActions.Hopper.spinToSensor());
+            /** Commenting out the color sense section since it's still not working.  Maybe for states?
             double hue = getBallHue();
             if (hue >= 270 && hue <= 300) {
                 telemetry.addData("Ball Color", "Purple Detected (Hue: %.2f)", hue);
@@ -208,38 +239,8 @@ public class WaldonTeleOp extends LinearOpMode {
                 telemetry.addData("Ball Color", "Not Purple (Hue: %.2f)", hue);
             }
             telemetry.update();
+            */
         }
-
-        if(intakeSpindexer){
-            encoder_location = spin_encoder.getCurrentPosition();
-            en_power = (1500 - encoder_location)*.00015;
-            if(en_power < 0.075){en_power = 0.075;}
-
-            spindexer.setPower(en_power);
-
-            if (encoder_location > 1320) { // 2675 is too far, 2620 2731
-                intakeSpindexer = false;
-                spindexer.setPower(0);
-                spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            }
-        }
-
-        if (spinSpindexer){
-            encoder_location = spin_encoder.getCurrentPosition();
-            en_power = (3000 - encoder_location)*.00015;
-            if(en_power < 0.075){en_power = 0.075;}
-
-            spindexer.setPower(en_power);
-            double elapsedTime = (System.currentTimeMillis() - spindexerStartTime);
-
-            if (encoder_location > 2640 && elapsedTime < 1500) { // 2675 is too far, 2620 2731
-                spinSpindexer = false;
-                spindexer.setPower(0);
-                spin_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            }
-
-        }
-
     }
 
     private double getBallHue() {
@@ -255,24 +256,45 @@ public class WaldonTeleOp extends LinearOpMode {
 
     private void Launch() {
         if(flywheel){
-            double targetFlywheelSpeed = 0.3448*(redDistance+blueDistance)*(redDistance+blueDistance) - 41.693*(redDistance+blueDistance) + 4400;
-            if (targetFlywheelSpeed>3700){targetFlywheelSpeed=3700;}
-            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
+            double dist = redDistance + blueDistance;
+            if (dist == 0){
+                if(distanceDebounce<4) {
+                    distanceDebounce++;
+                } else {
+                    targetFlywheelSpeed = 1000;
+                }
+            } else {
+                targetFlywheelSpeed = (0.2025 * dist * dist) - (14.088 * dist) + 3216;
+                distanceDebounce = 0;
+            }
+
+            if (targetFlywheelSpeed>3700){targetFlywheelSpeed=3700;} //Max flywheel speed...
+
+            //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
+            runningActions.add(DigActions.Launcher.motorOn(targetFlywheelSpeed));
+
+            telemetry.addData("Flywheel Speed: ", targetFlywheelSpeed);
         }
 
-        if (gamepad2.x && !flywheel && (System.currentTimeMillis() - xButtonDebounce > 500)) {
-            xButtonDebounce = System.currentTimeMillis();
-            flywheel = true;
+        if(!flywheel){
+            targetFlywheelSpeed = 0;
+            //Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOn(targetFlywheelSpeed)));
+            runningActions.add(DigActions.Launcher.motorOn(targetFlywheelSpeed));
+            telemetry.addData("Flywheel Speed: ", targetFlywheelSpeed);
         }
-        if (gamepad2.x && flywheel && (System.currentTimeMillis() - xButtonDebounce > 500)) {
+
+        if (gamepad2.x && System.currentTimeMillis() - xButtonDebounce > 150){
             xButtonDebounce = System.currentTimeMillis();
-            flywheel = false;
-            Actions.runBlocking(new SequentialAction(DigActions.Launcher.motorOff()));
+            flywheel = !flywheel;
         }
-        if (gamepad2.y) {
+
+        if (gamepad2.y && System.currentTimeMillis() - spindexerStartTime > 1500) {
+            spindexerStartTime = System.currentTimeMillis();
             yButtonDebounce = System.currentTimeMillis();
-            Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
+            //Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
+            runningActions.add(DigActions.Launcher.pullTrigger());
         }
+
         if(gamepad2.guide){
             //Launch all three in a sequence:
             Actions.runBlocking(new SequentialAction(
@@ -303,7 +325,7 @@ public class WaldonTeleOp extends LinearOpMode {
         }
 
         if (gamepad1.right_bumper && (System.currentTimeMillis() - lastPressedA > 250)) {
-            slow_mode = (slow_mode == 1.0) ? 0.5 : 1.0; // Toggle Turbo
+            slow_mode = (slow_mode == 1.0) ? 0.5 : 1.0; // Toggle Slow Mode
             lastPressedbumper = System.currentTimeMillis();
         }
 
@@ -311,18 +333,10 @@ public class WaldonTeleOp extends LinearOpMode {
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
 
-        if (gamepad1.right_stick_button && (System.currentTimeMillis() - lastPressedB > 250)) {
-            robotEnabled = !robotEnabled;
-            lastPressedB = System.currentTimeMillis();
-            if (!robotEnabled) {
-                frontLeftMotor.setPower(0);
-                backLeftMotor.setPower(0);
-                frontRightMotor.setPower(0);
-                backRightMotor.setPower(0);
-            }
+        //Auto align to April Tag:
+        if(gamepad1.y) {
+            rx = rx + 0.03 * (redAlign + blueAlign);
         }
-
-        if (!robotEnabled) return;
 
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
@@ -339,6 +353,7 @@ public class WaldonTeleOp extends LinearOpMode {
         frontRightMotor.setPower(frontRightPower);
         backRightMotor.setPower(backRightPower);
     }
+
     /**
      * Initialize the AprilTag processor.
      */
@@ -407,31 +422,46 @@ public class WaldonTeleOp extends LinearOpMode {
 
     }   // end method initAprilTag()
 
-
     /**
      * Add telemetry about AprilTag detections.
      */
-
     private void WaldonAprilTag(){
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        for (AprilTagDetection detection : currentDetections) {
-            if(detection.id == 20) {
-                //this is a blue goal
-                goalDetected = 1; // use this for the Blue Goal
-                blueDistance = detection.ftcPose.y;
-                redDistance = 0;
 
-            } else if(detection.id == 24) {
-                //this is a red goal
-                goalDetected = 2; // use this for the Red Goal
-                redDistance = detection.ftcPose.y;
-                blueDistance = 0;
-            }
-            else {
-                //don't care
+        if(currentDetections.isEmpty()) {
+            //redDistance = 0;
+            //blueDistance = 0;
+            redAlign = 0;
+            blueAlign = 0;
+            eye1.setState(true);
+            eye2.setState(true);
+        } else {
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.id == 20) {
+                    //this is a blue goal
+                    goalDetected = 1; // use this for the Blue Goal
+                    blueDistance = detection.ftcPose.y;
+                    redDistance = 0;
+                    blueAlign = detection.ftcPose.x;
+                    redAlign = 0;
+                    eye1.setState(false);
+                    eye2.setState(false);
+                } else if (detection.id == 24) {
+                    //this is a red goal
+                    goalDetected = 2; // use this for the Red Goal
+                    redDistance = detection.ftcPose.y;
+                    blueDistance = 0;
+                    redAlign = detection.ftcPose.x;
+                    blueAlign = 0;
+                    eye1.setState(false);
+                    eye2.setState(false);
+                } else {
+                    //nothing
+                }
             }
         }
     }
+
 
     private void telemetryAprilTag() {
 
