@@ -1,27 +1,20 @@
 package org.firstinspires.ftc.teamcode;
+
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.AngularVelConstraint;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.acmerobotics.roadrunner.ParallelAction;
-import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
-import com.acmerobotics.roadrunner.ftc.Actions;
-import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -30,10 +23,10 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@Autonomous(name="Red Goal Auton", preselectTeleOp = "WaldonTeleOp")
-@Config
 
-public class RedGoalAuton extends LinearOpMode {
+@Autonomous(name="Blue Audience Auton 9", preselectTeleOp = "WaldonTeleOp")
+@Config
+public class BlueAudienceAuton_9 extends LinearOpMode {
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
     public int OBELISK = 2;
@@ -46,6 +39,7 @@ public class RedGoalAuton extends LinearOpMode {
         spinEcoder = hardwareMap.get(DcMotorEx.class, "spin_encoder");
         spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        //DigActions.Sensors Sensors = new DigActions.Sensors(hardwareMap);
         DigActions.Intake Intake = new DigActions.Intake(hardwareMap);
         DigActions.Launcher Launcher = new DigActions.Launcher(hardwareMap);
         DigActions.Parking Parking = new DigActions.Parking(hardwareMap);
@@ -54,94 +48,94 @@ public class RedGoalAuton extends LinearOpMode {
         CRServo rightRamp = hardwareMap.get(CRServo.class,"rightRamp");
         CRServo leftRamp = hardwareMap.get(CRServo.class, "leftRamp");
 
-        Pose2d beginPose = new Pose2d(-49, 49, Math.toRadians(125));
-        Pose2d obeliskPose = new Pose2d(-26,26,Math.toRadians(210));
-        Pose2d launchPose = new Pose2d(-24, 24, Math.toRadians(135));
-        Pose2d parkPose = new Pose2d(-48, 12, Math.toRadians(180));
+
+        Pose2d beginPose = new Pose2d(62,-12,Math.toRadians(180));
+        Pose2d launchPose = new Pose2d(58,-12,Math.toRadians(201));
+        Pose2d launchPose2 = new Pose2d(58,-18,Math.toRadians(201));
+
+        initAprilTag();
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         drive.localizer.setPose(beginPose);
 
-        initAprilTag();
-
-        Action drive_to_launch_1 = drive.actionBuilder(beginPose)
-                .setTangent(Math.toRadians(-35))
-                .splineToLinearHeading(obeliskPose, Math.toRadians(305))
+        Action inital_move = drive.actionBuilder(beginPose)
+                .splineToLinearHeading(launchPose,0)
                 .build();
 
-        Action AprilTagSpin = drive.actionBuilder(obeliskPose)
-                .splineToLinearHeading(launchPose,Math.toRadians(125),new AngularVelConstraint(Math.PI/2))
-                //.turn(Math.toRadians(-80)) // this seems to work but I would rather use the spline to heading functions
+        Action intake_artifact_near = drive.actionBuilder(launchPose)
+                .splineTo(new Vector2d(36, -32), Math.toRadians(-90))
+                .lineToY(-48)
+                .setTangent(Math.toRadians(90))
+                .splineToLinearHeading(launchPose2, Math.toRadians(20))
                 .build();
 
-        Action drive_to_intake_1 = drive.actionBuilder(launchPose)
-                .setTangent(Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(-8, 20, Math.toRadians(90)), Math.toRadians(90))
-                .lineToY(50)
-                .setTangent(Math.toRadians(270))
-                .splineToLinearHeading(launchPose, Math.toRadians(90))
+        Action intake_artifact_gate = drive.actionBuilder(launchPose)
+                .splineTo(new Vector2d(14, -32), Math.toRadians(-90))
+                .lineToY(-50)
+                .setTangent(Math.toRadians(90))
+                .splineToLinearHeading(launchPose2, Math.toRadians(20))
                 .build();
 
         Action park = drive.actionBuilder(launchPose)
-                .splineToLinearHeading(parkPose, Math.toRadians(180))
+                .splineTo(new Vector2d(58, -38), Math.toRadians(-90)) // old was 36 for x and 36 for y
                 .build();
+
+        spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         /**
          * Auton START
          */
-
         waitForStart();
+        //AutonDetection();
         leftRamp.setPower(-1);
         rightRamp.setPower(1);
 
         //spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        Actions.runBlocking(
-                new SequentialAction(
-                        drive_to_launch_1
-                )
-        );
-        //AutonDetection();
-        Actions.runBlocking(
-                new SequentialAction(
-                        new DigActions.Launcher.MotorOn(3000),
-                        AprilTagSpin
-                )
-        );
         //if(OBELISK == 1){
         //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
         //} else if (OBELISK == 2){
         //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
         //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
-        //}
+        // }
+
         Actions.runBlocking(
                 new SequentialAction(
+                        inital_move,
+                        new DigActions.Launcher.MotorOn(3600),
+                        /** First Three */
+                        new SleepAction(0.5), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        new SleepAction(0.5),
-                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new SleepAction(0.5),
-                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Launcher.MotorOn(1500),
+
+                        /** Gate Artifacts */
                         new DigActions.Intake.IntakeOn(),
-                        drive_to_intake_1,
+                        new ParallelAction(
+                                intake_artifact_gate,
+                                DigActions.Intake.intakeRamp()
+                        ),
                         new DigActions.Intake.IntakeOff(),
-                        new DigActions.Launcher.MotorOn(3000),
-                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new SleepAction(0.5),
-                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new SleepAction(0.5),
-                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Launcher.MotorOff(),
+
+                        /** Near Artifacts */
+                        new DigActions.Intake.IntakeOn(),
+                        new ParallelAction(
+                                intake_artifact_near,
+                                DigActions.Intake.intakeRamp()
+                        ),
+                        new DigActions.Intake.IntakeOff(),
+                        new DigActions.Launcher.PullTrigger(),
+                        new DigActions.Launcher.PullTrigger(),
+                        new DigActions.Launcher.PullTrigger(),
+
+                        /** Go Park */
                         park
+
                 )
         );
     }
-
 
     private void initAprilTag() {
         // Create the AprilTag processor.
@@ -171,12 +165,12 @@ public class RedGoalAuton extends LinearOpMode {
 
             } else if(detection.id == 22) {
                 //PURPLE GREEN PURPLE
-                // Rotate 2 or better yet, rotate backwards if we can
+                // Rotate 1
                 OBELISK = 2;
             }
             else if(detection.id == 23)  {
                 //PURPLE PURPLE GREEN
-                // Rotate 1
+                // Rotate 2 or better yet, rotate backwards if we can
                 OBELISK = 1;
             }
         }

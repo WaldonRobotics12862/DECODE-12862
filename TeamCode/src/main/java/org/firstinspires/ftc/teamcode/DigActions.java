@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -24,12 +25,18 @@ public class DigActions {
         private static DcMotorEx flywheelmotor;
         private static CRServo turret;
         private static Servo trigger;
+        private static CRServo rightRamp;
+        private static CRServo leftRamp;
+        private static DcMotorEx intake;
 
         public Launcher(HardwareMap hardwareMap) {
             // Launcher initialization, e.g., configuring motors or sensors
             flywheelmotor = hardwareMap.get(DcMotorEx.class, "flywheel");
             turret = hardwareMap.get(CRServo.class, "turret");
             trigger = hardwareMap.get(Servo.class, "trigger");
+            rightRamp = hardwareMap.get(CRServo.class, "rightRamp");
+            leftRamp = hardwareMap.get(CRServo.class,"leftRamp");
+            intake = hardwareMap.get(DcMotorEx.class, "intake");
 
             flywheelmotor.setDirection(DcMotorEx.Direction.REVERSE);
             trigger.setPosition(0);
@@ -99,7 +106,6 @@ public class DigActions {
                 return false;
             }
         }
-
         public static Action detectDistance() {
             return new DetectDistance();
         }
@@ -107,6 +113,10 @@ public class DigActions {
         public static class PullTrigger implements Action{
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                rightRamp.setPower(0);
+                leftRamp.setPower(0);
+                intake.setPower(1);
+
                 trigger.setPosition(1);
                 try {
                     sleep(750);
@@ -115,10 +125,20 @@ public class DigActions {
                 }
                 trigger.setPosition(0);
                 try {
+                    sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                leftRamp.setPower(-1);
+                rightRamp.setPower(1);
+                try {
                     sleep(250);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+                rightRamp.setPower(0);
+                leftRamp.setPower(0);
+                intake.setPower(0);
                 return false;
             }
         }
@@ -133,12 +153,17 @@ public class DigActions {
 
     public static class Intake {
         private static DcMotorEx intake;
-        private static CRServo spin;
+        private static CRServo spin, rightRamp, leftRamp;
+        private static RevColorSensorV3 colorSensor;
+
 
         public Intake(HardwareMap hardwareMap) {
             // 1 Motor, 2 Direction
             intake = hardwareMap.get(DcMotorEx.class, "intake");
             spin = hardwareMap.get(CRServo.class, "spin");
+            rightRamp = hardwareMap.get(CRServo.class,"rightRamp");
+            leftRamp = hardwareMap.get(CRServo.class, "leftRamp");
+            colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
         }
 
         public static class IntakeOn implements Action {
@@ -174,6 +199,31 @@ public class DigActions {
         }
         public static Action spitOut() {
             return new SpitOut();
+        }
+
+        public static class IntakeRamp implements Action{
+            private long startTime = 0; // New: Variable to store the start time
+            private boolean initialized = false; // New: Flag to check if we've started
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                // New: Initialize the timer on the first run
+                if (!initialized) {
+                    startTime = System.currentTimeMillis();
+                    initialized = true;
+                }
+                if(colorSensor.getDistance(DistanceUnit.CM)>8 && System.currentTimeMillis() - startTime < 5000) {
+                    leftRamp.setPower(-1);
+                    rightRamp.setPower(1);
+                    return true;
+                } else {
+                    leftRamp.setPower(0);
+                    rightRamp.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public static Action intakeRamp(){
+            return new IntakeRamp();
         }
     }
 

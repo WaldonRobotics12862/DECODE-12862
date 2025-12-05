@@ -28,6 +28,8 @@
             <ServoFullRange name="trigger" port="0" />
             <ContinuousRotationServo name="spin" port="2" />
             <ContinuousRotationServo name="turret" port="3" />
+            <ContinuousRotationServo name="leftRamp" port="4" />
+            <ContinuousRotationServo name="rightRamp" port="5" />
 
             <SparkFunOTOS name="sensor_otos" port="0" bus="1" />
 

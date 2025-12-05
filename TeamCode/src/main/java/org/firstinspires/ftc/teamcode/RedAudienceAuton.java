@@ -8,6 +8,7 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -51,6 +52,8 @@ public class RedAudienceAuton extends LinearOpMode {
         DigActions.Parking Parking = new DigActions.Parking(hardwareMap);
         DigActions.Hopper Hopper = new DigActions.Hopper(hardwareMap);
 
+        CRServo rightRamp = hardwareMap.get(CRServo.class,"rightRamp");
+        CRServo leftRamp = hardwareMap.get(CRServo.class, "leftRamp");
 
         Pose2d beginPose = new Pose2d(62,12,Math.toRadians(180));
         Pose2d launchPose = new Pose2d(58,12,Math.toRadians(159));
@@ -65,16 +68,14 @@ public class RedAudienceAuton extends LinearOpMode {
                 .build();
 
         Action intake_artifact = drive.actionBuilder(launchPose)
-                //.setTangent(200)
                 .splineTo(new Vector2d(36, 32), Math.toRadians(90))
-                .lineToY(54)
-                .waitSeconds(1)
+                .lineToY(46)
                 .setTangent(Math.toRadians(-90))
                 .splineToLinearHeading(new Pose2d(58,18,Math.toRadians(160)), Math.toRadians(-20))
                 .build();
 
         Action park = drive.actionBuilder(launchPose)
-                .splineTo(new Vector2d(36, 32), Math.toRadians(90))
+                .splineTo(new Vector2d(58, 38), Math.toRadians(90)) //was 36
                 .build();
 
         spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -83,47 +84,48 @@ public class RedAudienceAuton extends LinearOpMode {
          * Auton START
          */
         waitForStart();
-        AutonDetection();
+        //AutonDetection();
+        leftRamp.setPower(-1);
+        rightRamp.setPower(1);
 
-        spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        if(OBELISK == 1){
-            Actions.runBlocking(DigActions.Hopper.spinToSensor());
-        } else if (OBELISK == 2){
-            Actions.runBlocking(DigActions.Hopper.spinToSensor());
-            Actions.runBlocking(DigActions.Hopper.spinToSensor());
-        }
+        //spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //if(OBELISK == 1){
+        //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
+        //} else if (OBELISK == 2){
+        //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
+        //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
+        // }
 
         Actions.runBlocking(
                 new SequentialAction(
                         inital_move,
                         new DigActions.Launcher.MotorOn(3600),
-                        new SleepAction(1), // let the motor get up to speed
+                        new SleepAction(0.5), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Hopper.SpinToSensor(),
+                        //new SleepAction(0.5), // let the motor get up to speed
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Hopper.SpinToSensor(),
+                        //new SleepAction(0.5), // let the motor get up to speed
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Launcher.MotorOn(1500), // slow down to 50% to save battery
+                        //new DigActions.Launcher.MotorOn(1500), // slow down to 50% to save battery
                         new DigActions.Intake.IntakeOn(),
                         new ParallelAction(
-                                intake_artifact,
-                                new SequentialAction(
-                                        new DigActions.Hopper.SpinToSensor(),
-                                        new DigActions.Hopper.SpinToSensor(),
-                                        new DigActions.Hopper.SpinToSensor(),
-                                        new DigActions.Hopper.SpinToSensor()
-                                )
+                            intake_artifact,
+                            DigActions.Intake.intakeRamp()
                         ),
                         new DigActions.Intake.IntakeOff(),
-                        new DigActions.Hopper.MotorOff(),
-                        new DigActions.Launcher.MotorOn(3600),
-                        new DigActions.Hopper.SpinToSensor(),
+                        //new DigActions.Hopper.MotorOff(),
+                        //new DigActions.Launcher.MotorOn(3600),
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Hopper.SpinToSensor(),
+                        //new SleepAction(0.5), // let the motor get up to speed
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Hopper.SpinToSensor(),
+                        //new SleepAction(0.5), // let the motor get up to speed
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Launcher.MotorOff(),
+                        //new DigActions.Launcher.MotorOff(),
                         park
 
                 )

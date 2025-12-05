@@ -28,6 +28,7 @@ import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -76,6 +77,8 @@ public class WaldonTeleOp extends LinearOpMode {
     public DigitalChannel magSensor;
     private DigitalChannel eye1 = null;
     private DigitalChannel eye2 = null;
+    public CRServo rightRamp = null;
+    public CRServo leftRamp = null;
 
     //public DcMotorEx spinEncoder;
 
@@ -100,6 +103,7 @@ public class WaldonTeleOp extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
+
         initAprilTag();
 
         DigitalChannel magSensor = hardwareMap.get(DigitalChannel.class, "mag");
@@ -111,6 +115,8 @@ public class WaldonTeleOp extends LinearOpMode {
         IMU imu = hardwareMap.get(IMU.class, "imu");
 
         DcMotorEx spinEncoder = hardwareMap.get(DcMotorEx.class, "spin_encoder");
+        rightRamp = hardwareMap.get(CRServo.class,"rightRamp");
+        leftRamp = hardwareMap.get(CRServo.class, "leftRamp");
 
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
@@ -151,14 +157,15 @@ public class WaldonTeleOp extends LinearOpMode {
 
         flywheel = true;
 
+
         while (opModeIsActive()) {
             //looptimer = System.currentTimeMillis();
             Drive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor, imu);
             Intake();
-            Index(spinEncoder, spindexer, magSensor);
+            // Index(spinEncoder, spindexer, magSensor); // Do not need to index anymore
             WaldonAprilTag();
             Launch();
-            Park();
+            // Park(); We don't have a park routine yet (maybe by states?)
 
             List<Action> newActions = new ArrayList<>();
             for (Action action: runningActions) {
@@ -177,6 +184,8 @@ public class WaldonTeleOp extends LinearOpMode {
             //telemetryAprilTag();
             //telemetry.addData("Red Distance:", redDistance);
             //telemetry.addData("Blue Distance",blueDistance);
+            telemetry.addData("distance",colorSensor.getDistance(DistanceUnit.CM));
+
             telemetry.update();
         }
         visionPortal.close();
@@ -198,6 +207,14 @@ public class WaldonTeleOp extends LinearOpMode {
         if (gamepad2.dpad_left) {
             runningActions.add(DigActions.Intake.spitOut());
             //Actions.runBlocking(new SequentialAction(DigActions.Intake.spitOut()));
+        }
+
+        if(colorSensor.getDistance(DistanceUnit.CM)>8){
+            leftRamp.setPower(-1);
+            rightRamp.setPower(1);
+        } else {
+            leftRamp.setPower(0);
+            rightRamp.setPower(0);
         }
 
     }
@@ -288,14 +305,14 @@ public class WaldonTeleOp extends LinearOpMode {
             flywheel = !flywheel;
         }
 
-        if (gamepad2.y && System.currentTimeMillis() - spindexerStartTime > 1500) {
-            spindexerStartTime = System.currentTimeMillis();
+        if (gamepad2.y && System.currentTimeMillis() - yButtonDebounce > 1000) {
+            //spindexerStartTime = System.currentTimeMillis();
             yButtonDebounce = System.currentTimeMillis();
             //Actions.runBlocking(new SequentialAction(DigActions.Launcher.pullTrigger()));
             runningActions.add(DigActions.Launcher.pullTrigger());
         }
 
-        if(gamepad2.guide){
+        /** if(gamepad2.guide){
             //Launch all three in a sequence:
             Actions.runBlocking(new SequentialAction(
                     //DigActions.Launcher.pullTrigger(),
@@ -305,7 +322,7 @@ public class WaldonTeleOp extends LinearOpMode {
                     DigActions.Launcher.pullTrigger()
                 )
             );
-        }
+        }*/
     }
 
     private void Park() {

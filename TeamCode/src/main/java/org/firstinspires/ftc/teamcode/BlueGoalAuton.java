@@ -9,6 +9,7 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -49,6 +50,8 @@ public class BlueGoalAuton extends LinearOpMode {
         DigActions.Parking Parking = new DigActions.Parking(hardwareMap);
         DigActions.Hopper Hopper = new DigActions.Hopper(hardwareMap);
 
+        CRServo rightRamp = hardwareMap.get(CRServo.class,"rightRamp");
+        CRServo leftRamp = hardwareMap.get(CRServo.class, "leftRamp");
 
         Pose2d beginPose = new Pose2d(-49, -49, Math.toRadians(-125));
         Pose2d obeliskPose = new Pose2d(-26,-26,Math.toRadians(-210));
@@ -87,55 +90,52 @@ public class BlueGoalAuton extends LinearOpMode {
          */
 
         waitForStart();
-        spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftRamp.setPower(-1);
+        rightRamp.setPower(1);
+
+        //spinEcoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         Actions.runBlocking(
                 new SequentialAction(
                         drive_to_launch_1
                 )
         );
-        AutonDetection();
+        //AutonDetection();
         Actions.runBlocking(
                 new SequentialAction(
                         new DigActions.Launcher.MotorOn(3000),
                         AprilTagSpin
                 )
         );
-        if(OBELISK == 1){
-            Actions.runBlocking(DigActions.Hopper.spinToSensor());
-        } else if (OBELISK == 2){
-            Actions.runBlocking(DigActions.Hopper.spinToSensor());
-            Actions.runBlocking(DigActions.Hopper.spinToSensor());
-        }
+        //if(OBELISK == 1){
+        //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
+        //} else if (OBELISK == 2){
+        //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
+        //    Actions.runBlocking(DigActions.Hopper.spinToSensor());
+        //}
         Actions.runBlocking(
                 new SequentialAction(
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Hopper.SpinToSensor(),
+                        new SleepAction(0.5),
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Hopper.SpinToSensor(),
+                        new SleepAction(0.5),
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
                         new DigActions.Launcher.MotorOn(1500),
                         new DigActions.Intake.IntakeOn(),
-
-                        new ParallelAction(
-                                drive_to_intake_1,
-                                new SequentialAction(
-                                        new DigActions.Hopper.SpinToSensor(),
-                                        new DigActions.Hopper.SpinToSensor(),
-                                        new DigActions.Hopper.SpinToSensor(),
-                                        new DigActions.Hopper.SpinToSensor()
-                                )
-                        ),
+                        drive_to_intake_1,
                         new DigActions.Intake.IntakeOff(),
                         new DigActions.Launcher.MotorOn(3000),
-                        new DigActions.Hopper.SpinToSensor(),
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Hopper.SpinToSensor(),
+                        new SleepAction(0.5),
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
-                        new DigActions.Hopper.SpinToSensor(),
+                        new SleepAction(0.5),
+                        //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
                         new DigActions.Launcher.MotorOff(),
-
                         park
                 )
         );
