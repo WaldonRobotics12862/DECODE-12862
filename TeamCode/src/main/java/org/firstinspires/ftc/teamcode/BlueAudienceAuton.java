@@ -70,7 +70,7 @@ public class BlueAudienceAuton extends LinearOpMode {
 
         Action intake_artifact = drive.actionBuilder(launchPose)
                 .splineTo(new Vector2d(36, -32), Math.toRadians(-90))
-                .lineToY(-46)
+                .lineToY(-52)
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(new Pose2d(58,-18,Math.toRadians(200)), Math.toRadians(20))
                 .build();
