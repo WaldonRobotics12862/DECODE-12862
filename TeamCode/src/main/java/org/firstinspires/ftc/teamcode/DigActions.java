@@ -132,7 +132,7 @@ public class DigActions {
                 leftRamp.setPower(-1);
                 rightRamp.setPower(1);
                 try {
-                    sleep(250);
+                    sleep(350);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
