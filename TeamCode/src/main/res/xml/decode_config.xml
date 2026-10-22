@@ -8,7 +8,6 @@
             <goBILDA5202SeriesMotor name="leftBack" port="1" />
             <goBILDA5202SeriesMotor name="spin_encoder" port="3" />
 
-            <RevColorSensorV3 name="colorSensor" port="0" bus="1" />
 
             <DigitalDevice name="mag" port="1" />
             <DigitalDevice name="eye1" port="2"/>
@@ -16,7 +15,14 @@
             <DigitalDevice name="eye3" port="4"/>
             <DigitalDevice name="eye4" port="5"/>
 
-            <NeoDriver name="led" port="0" bus="3" />
+            <NeoDriver name="led" port="0" bus="0" />
+            <RevColorSensorV3 name="colorSensor" port="0" bus="1" />
+            <SparkFunOTOS name="sensor_otos" port="0" bus="2" />
+            <!--AndyMarkIMU name="imu" port="0" bus="3" /-->
+
+            <LynxEmbeddedIMU name="imu" port="0" bus="0" />
+
+
         </LynxModule>
 
         <LynxModule name="Control Hub" port="173">
@@ -31,9 +37,9 @@
             <ContinuousRotationServo name="leftRamp" port="4" />
             <ContinuousRotationServo name="rightRamp" port="5" />
 
-            <SparkFunOTOS name="sensor_otos" port="0" bus="1" />
 
-            <AndyMarkIMU name="imu" port="0" bus="2" />
+
+
         </LynxModule>
 
     </LynxUsbDevice>

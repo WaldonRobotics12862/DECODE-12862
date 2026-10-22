@@ -1,5 +1,6 @@
 package com.example.meepmeeptesting;  // Adjust package as needed
 
+import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
@@ -16,16 +17,14 @@ public class MeepMeepTesting {
                 .build();
 
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-49, 49, Math.toRadians(125)))
-                .setTangent(Math.toRadians(-35))
-                .splineToLinearHeading(new Pose2d(-26,26,Math.toRadians(210)), Math.toRadians(305))
-                .splineToLinearHeading(new Pose2d(-24, 24, Math.toRadians(135)),Math.toRadians(125))
-                .setTangent(Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(-12, 20, Math.toRadians(90)), Math.toRadians(-90))
-                .lineToY(54)
-                .setTangent(Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(-24, 24, Math.toRadians(135)), Math.toRadians(90))
-                .build());
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(58,-12,Math.toRadians(159)))
+                        .splineTo(new Vector2d(14, -32), Math.toRadians(-90))
+                        .lineToY(-52)
+                        .setTangent(Math.toRadians(90))
+                        .lineToY(-48)
+                        .splineToLinearHeading(new Pose2d(58,-18,Math.toRadians(201)), Math.toRadians(20))
+                        .build()
+        );
 
         //myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-49, -49, Math.toRadians(55))) // Start pose: Y negated, heading = 180° - 125° = 55°
         //        .waitSeconds(2)

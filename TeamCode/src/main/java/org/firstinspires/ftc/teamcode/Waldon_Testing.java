@@ -58,7 +58,7 @@ import java.util.List;
 
 @TeleOp(name="Waldon Testing")
 @Config
-//@Disabled
+@Disabled
 public class Waldon_Testing extends LinearOpMode {
 
     public static int A_speed = 4000;

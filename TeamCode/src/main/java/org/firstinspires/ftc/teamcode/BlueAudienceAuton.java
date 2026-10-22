@@ -99,8 +99,9 @@ public class BlueAudienceAuton extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
+                        new SleepAction(5), // let the motor get up to speed
                         inital_move,
-                        new DigActions.Launcher.MotorOn(3600),
+                        new DigActions.Launcher.MotorOn(3650),
                         new SleepAction(1), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),
                         new SleepAction(0.5), // let the motor get up to speed
@@ -114,7 +115,7 @@ public class BlueAudienceAuton extends LinearOpMode {
                         intake_artifact,
                         new DigActions.Intake.IntakeOff(),
                         //new DigActions.Hopper.MotorOff(),
-                        new DigActions.Launcher.MotorOn(3600),
+                        new DigActions.Launcher.MotorOn(3650),
                         //new DigActions.Hopper.SpinToSensor(),
                         new DigActions.Launcher.PullTrigger(),
                         new SleepAction(0.5), // let the motor get up to speed

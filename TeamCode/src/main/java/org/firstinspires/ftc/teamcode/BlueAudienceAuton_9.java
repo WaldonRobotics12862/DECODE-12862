@@ -73,6 +73,7 @@ public class BlueAudienceAuton_9 extends LinearOpMode {
                 .splineTo(new Vector2d(14, -32), Math.toRadians(-90))
                 .lineToY(-52)
                 .setTangent(Math.toRadians(90))
+                .lineToY(-48)
                 .splineToLinearHeading(launchPose2, Math.toRadians(20))
                 .build();
 

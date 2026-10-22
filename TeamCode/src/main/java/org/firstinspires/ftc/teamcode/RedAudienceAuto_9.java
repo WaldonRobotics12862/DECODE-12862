@@ -63,15 +63,16 @@ public class RedAudienceAuto_9 extends LinearOpMode {
 
         Action intake_artifact_near = drive.actionBuilder(launchPose)
                 .splineTo(new Vector2d(36, 32), Math.toRadians(90))
-                .lineToY(52)
+                .lineToY(50)
                 .setTangent(Math.toRadians(-90))
                 .splineToLinearHeading(launchPose2, Math.toRadians(-20))
                 .build();
 
         Action intake_artifact_gate = drive.actionBuilder(launchPose)
                 .splineTo(new Vector2d(14, 32), Math.toRadians(90))
-                .lineToY(52)
+                .lineToY(50)
                 .setTangent(Math.toRadians(-90))
+                .lineToY(48)
                 .splineToLinearHeading(launchPose2, Math.toRadians(-20))
                 .build();
 
@@ -100,7 +101,7 @@ public class RedAudienceAuto_9 extends LinearOpMode {
         Actions.runBlocking(
                 new SequentialAction(
                         inital_move,
-                        new DigActions.Launcher.MotorOn(3600),
+                        new DigActions.Launcher.MotorOn(3650),
                         /** First Three */
                         new SleepAction(0.5), // let the motor get up to speed
                         new DigActions.Launcher.PullTrigger(),

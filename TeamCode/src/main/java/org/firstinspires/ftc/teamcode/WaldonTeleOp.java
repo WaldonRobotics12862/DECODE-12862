@@ -450,8 +450,8 @@ public class WaldonTeleOp extends LinearOpMode {
             //blueDistance = 0;
             redAlign = 0;
             blueAlign = 0;
-            eye1.setState(true);
-            eye2.setState(true);
+            eye1.setState(false);
+            eye2.setState(false);
         } else {
             for (AprilTagDetection detection : currentDetections) {
                 if (detection.id == 20) {
